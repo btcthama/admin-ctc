@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Admin Messaging | CTC Capital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100vw;
+            min-width: 0;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top, rgba(14, 31, 66, 0.95), #031221 0%), #020814;
+            color: #E2E8F0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+        }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .message-card {
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+            border: 1px solid rgba(148, 163, 184, 0.24);
+            background: rgba(15, 23, 42, 0.6);
+        }
+        .message-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(96, 165, 250, 0.3);
+            box-shadow: 0 18px 40px -24px rgba(96, 165, 250, 0.12);
+        }
+        .status-pill {
+            padding: 0.45rem 0.85rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+    <div id="adminSidebar"></div>
+    <div id="mainContent" class="ml-64 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 overflow-x-hidden max-w-full">
+        <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Admin Control</p>
+                <h1 class="mt-3 text-3xl font-bold text-slate-100">Messaging Center</h1>
+                <p class="mt-2 text-slate-400 max-w-2xl">Send targeted messages to users, broadcast announcements, and manage communication channels.</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="users.html" class="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                    </svg>
+                    Manage Users
+                </a>
+                <a href="../app/dashboard.html" class="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <section class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+            <div class="space-y-6">
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+                        <div>
+                            <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Compose Message</p>
+                            <h3 class="mt-2 text-xl font-semibold text-slate-100">Send New Message</h3>
+                        </div>
+                        <div class="flex gap-3">
+                            <button id="broadcastBtn" class="rounded-2xl bg-amber-600 px-4 py-3 text-white font-semibold hover:bg-amber-700 transition">
+                                Broadcast to All
+                            </button>
+                            <button id="sendToUserBtn" class="rounded-2xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition">
+                                Send to User
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="messageForm" class="space-y-6">
+                        <div class="grid gap-6 md:grid-cols-2">
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-300 mb-2">Recipient</label>
+                                <select id="recipientSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                                    <option value="">Select a user...</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-slate-300 mb-2">Message Type</label>
+                                <select id="messageType" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                                    <option value="info">Information</option>
+                                    <option value="warning">Warning</option>
+                                    <option value="success">Success</option>
+                                    <option value="error">Error</option>
+                                    <option value="announcement">Announcement</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-300 mb-2">Subject/Title</label>
+                            <input id="messageTitle" type="text" placeholder="Enter message title..." class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-semibold text-slate-300 mb-2">Message Content</label>
+                            <textarea id="messageContent" rows="6" placeholder="Enter your message..." class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 resize-none"></textarea>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button type="submit" class="flex-1 rounded-xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition">
+                                Send Message
+                            </button>
+                            <button type="button" id="clearBtn" class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition">
+                                Clear
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+                        <div>
+                            <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Message History</p>
+                            <h3 class="mt-2 text-xl font-semibold text-slate-100">Recent Messages Sent</h3>
+                        </div>
+                        <button id="refreshHistory" class="rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                            Refresh
+                        </button>
+                    </div>
+
+                    <div id="messageHistory" class="space-y-4">
+                        <div class="message-card p-6 rounded-[1.75rem]">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                                <div class="space-y-2">
+                                    <p class="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Loading messages...</p>
+                                    <h3 class="text-xl font-semibold text-slate-100">Message history will appear here</h3>
+                                    <p class="text-sm text-slate-400">Recent admin messages and broadcasts</p>
+                                </div>
+                                <span class="status-pill bg-slate-700 text-slate-300">Loading</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <h3 class="text-xl font-semibold text-slate-100 mb-4">Quick Stats</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75">
+                            <span class="text-slate-300">Total Users</span>
+                            <span id="totalUsers" class="text-cyan-300 font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75">
+                            <span class="text-slate-300">Messages Sent Today</span>
+                            <span id="messagesToday" class="text-emerald-300 font-bold">0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75">
+                            <span class="text-slate-300">Active Recipients</span>
+                            <span id="activeRecipients" class="text-amber-300 font-bold">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <h3 class="text-xl font-semibold text-slate-100 mb-4">Message Templates</h3>
+                    <div class="space-y-3">
+                        <button onclick="loadTemplate('welcome')" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition">
+                            <div class="font-semibold">Welcome Message</div>
+                            <div class="text-sm text-slate-400">Welcome new users to the platform</div>
+                        </button>
+                        <button onclick="loadTemplate('maintenance')" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition">
+                            <div class="font-semibold">Maintenance Notice</div>
+                            <div class="text-sm text-slate-400">Inform users about system maintenance</div>
+                        </button>
+                        <button onclick="loadTemplate('security')" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition">
+                            <div class="font-semibold">Security Alert</div>
+                            <div class="text-sm text-slate-400">Important security notifications</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Broadcast Modal -->
+        <div id="broadcastModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 p-4">
+            <div class="max-w-md w-full bg-slate-800 rounded-[2rem] border border-slate-700 shadow-2xl overflow-hidden">
+                <div class="bg-slate-900 px-6 py-5 border-b border-slate-700">
+                    <h2 class="text-lg font-bold text-white">Broadcast Message</h2>
+                    <p class="text-sm text-slate-400 mt-1">Send to all registered users</p>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                        <p class="text-amber-300 text-sm">⚠️ This will send the message to ALL users. Use carefully.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="confirmBroadcast" class="flex-1 rounded-xl bg-amber-600 px-4 py-3 text-white font-semibold hover:bg-amber-700 transition">Send Broadcast</button>
+                        <button id="cancelBroadcast" class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, addDoc, getDocs, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4",
+            authDomain: "ctc-capital.firebaseapp.com",
+            projectId: "ctc-capital",
+            storageBucket: "ctc-capital.firebasestorage.app",
+            messagingSenderId: "563837502113",
+            appId: "1:563837502113:web:d84ae0e9d07c997ebb26e0",
+            measurementId: "G-7L643VX04V"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allUsers = [];
+        let messageHistory = [];
+
+        const recipientSelect = document.getElementById('recipientSelect');
+        const messageType = document.getElementById('messageType');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageContent = document.getElementById('messageContent');
+        const messageForm = document.getElementById('messageForm');
+        const clearBtn = document.getElementById('clearBtn');
+        const broadcastBtn = document.getElementById('broadcastBtn');
+        const sendToUserBtn = document.getElementById('sendToUserBtn');
+        const broadcastModal = document.getElementById('broadcastModal');
+        const confirmBroadcast = document.getElementById('confirmBroadcast');
+        const cancelBroadcast = document.getElementById('cancelBroadcast');
+        const messageHistoryEl = document.getElementById('messageHistory');
+        const refreshHistory = document.getElementById('refreshHistory');
+        const totalUsersEl = document.getElementById('totalUsers');
+        const messagesTodayEl = document.getElementById('messagesToday');
+        const activeRecipientsEl = document.getElementById('activeRecipients');
+
+        const messageTemplates = {
+            welcome: {
+                title: 'Welcome to CTC Capital!',
+                content: 'Welcome to CTC Capital Elite! Your account has been successfully created. You can now start trading, managing your portfolio, and accessing premium financial tools. If you have any questions, please contact our support team.'
+            },
+            maintenance: {
+                title: 'Scheduled Maintenance Notice',
+                content: 'We will be performing scheduled maintenance on our platform. Some services may be temporarily unavailable. We apologize for any inconvenience and appreciate your patience.'
+            },
+            security: {
+                title: 'Security Alert',
+                content: 'We have detected unusual activity on your account. For your security, we recommend changing your password and enabling two-factor authentication. Contact support if you did not initiate these activities.'
+            }
+        };
+
+        async function loadUsers() {
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                allUsers = [];
+                usersSnapshot.forEach(doc => {
+                    const userData = doc.data();
+                    allUsers.push({
+                        uid: doc.id,
+                        name: userData.fullName || userData.email || 'Unknown User',
+                        email: userData.email || ''
+                    });
+                });
+
+                // Populate recipient select
+                recipientSelect.innerHTML = '<option value="">Select a user...</option>';
+                allUsers.forEach(user => {
+                    const option = document.createElement('option');
+                    option.value = user.uid;
+                    option.textContent = `${user.name} (${user.email})`;
+                    recipientSelect.appendChild(option);
+                });
+
+                totalUsersEl.textContent = allUsers.length;
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        function loadTemplate(templateName) {
+            const template = messageTemplates[templateName];
+            if (template) {
+                messageTitle.value = template.title;
+                messageContent.value = template.content;
+                messageType.value = templateName === 'security' ? 'error' : templateName === 'maintenance' ? 'warning' : 'info';
+            }
+        }
+
+        function clearForm() {
+            recipientSelect.value = '';
+            messageType.value = 'info';
+            messageTitle.value = '';
+            messageContent.value = '';
+        }
+
+        async function sendMessage(recipientUid, title, content, type) {
+            try {
+                // Add to user's notifications sub-collection
+                await addDoc(collection(db, 'users', recipientUid, 'notifications'), {
+                    title: title,
+                    message: content,
+                    description: 'Message from CTC Capital administration.',
+                    type: 'Admin',
+                    createdAt: serverTimestamp(),
+                    read: false
+                });
+
+                // Also set as popup notification
+                await updateDoc(doc(db, 'users', recipientUid), {
+                    currentNotification: content,
+                    notificationType: type
+                });
+
+                return true;
+            } catch (error) {
+                console.error('Error sending message:', error);
+                return false;
+            }
+        }
+
+        async function sendBroadcast(title, content, type) {
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const user of allUsers) {
+                try {
+                    const success = await sendMessage(user.uid, title, content, type);
+                    if (success) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch (error) {
+                    console.error(`Failed to send to ${user.email}:`, error);
+                    failCount++;
+                }
+            }
+
+            return { successCount, failCount };
+        }
+
+        function renderMessageHistory() {
+            if (!messageHistory || messageHistory.length === 0) {
+                messageHistoryEl.innerHTML = `
+                    <div class="message-card p-6 rounded-[1.75rem]">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div class="space-y-2">
+                                <p class="text-xs uppercase tracking-[0.3em] text-slate-400">No messages sent yet</p>
+                                <h3 class="text-xl font-semibold text-slate-100">Message history is empty</h3>
+                                <p class="text-sm text-slate-400">Send your first message to see it here</p>
+                            </div>
+                            <span class="status-pill bg-slate-700 text-slate-300">Empty</span>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            messageHistoryEl.innerHTML = messageHistory.slice(0, 10).map(msg => `
+                <div class="message-card p-6 rounded-[1.75rem]">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="space-y-2">
+                            <p class="text-xs uppercase tracking-[0.3em] text-cyan-300/80">${msg.type || 'Message'}</p>
+                            <h3 class="text-xl font-semibold text-slate-100">${msg.title}</h3>
+                            <p class="text-sm text-slate-400">${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}</p>
+                            <p class="text-xs text-slate-500">Sent: ${msg.timestamp}</p>
+                        </div>
+                        <div class="text-right space-y-2">
+                            <span class="status-pill bg-emerald-600/20 text-emerald-300">${msg.recipientCount || 1} recipients</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Event listeners
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const recipientUid = recipientSelect.value;
+            const title = messageTitle.value.trim();
+            const content = messageContent.value.trim();
+            const type = messageType.value;
+
+            if (!recipientUid || !title || !content) {
+                alert('Please fill in all fields and select a recipient.');
+                return;
+            }
+
+            try {
+                const success = await sendMessage(recipientUid, title, content, type);
+                if (success) {
+                    alert('Message sent successfully!');
+                    clearForm();
+
+                    // Add to history
+                    const recipient = allUsers.find(u => u.uid === recipientUid);
+                    messageHistory.unshift({
+                        title,
+                        content,
+                        type,
+                        timestamp: new Date().toLocaleString(),
+                        recipientCount: 1,
+                        recipient: recipient ? recipient.name : 'Unknown'
+                    });
+                    renderMessageHistory();
+                } else {
+                    alert('Failed to send message. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
+        });
+
+        clearBtn.addEventListener('click', clearForm);
+
+        broadcastBtn.addEventListener('click', () => {
+            const title = messageTitle.value.trim();
+            const content = messageContent.value.trim();
+
+            if (!title || !content) {
+                alert('Please fill in the title and content before broadcasting.');
+                return;
+            }
+
+            broadcastModal.classList.remove('hidden');
+        });
+
+        confirmBroadcast.addEventListener('click', async () => {
+            const title = messageTitle.value.trim();
+            const content = messageContent.value.trim();
+            const type = messageType.value;
+
+            broadcastModal.classList.add('hidden');
+
+            try {
+                const result = await sendBroadcast(title, content, type);
+                alert(`Broadcast sent! ${result.successCount} successful, ${result.failCount} failed.`);
+
+                if (result.successCount > 0) {
+                    messageHistory.unshift({
+                        title: `[BROADCAST] ${title}`,
+                        content,
+                        type,
+                        timestamp: new Date().toLocaleString(),
+                        recipientCount: result.successCount
+                    });
+                    renderMessageHistory();
+                }
+            } catch (error) {
+                console.error('Broadcast error:', error);
+                alert('Broadcast failed. Please try again.');
+            }
+        });
+
+        cancelBroadcast.addEventListener('click', () => {
+            broadcastModal.classList.add('hidden');
+        });
+
+        refreshHistory.addEventListener('click', renderMessageHistory);
+
+        sendToUserBtn.addEventListener('click', () => {
+            recipientSelect.focus();
+        });
+
+        // Global functions for onclick
+        window.loadTemplate = loadTemplate;
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                
+                return;
+            }
+            loadUsers();
+            renderMessageHistory();
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>

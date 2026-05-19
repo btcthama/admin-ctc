@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Investments | CTC Capital Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020814; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel { background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(18px); border: 1px solid rgba(148, 163, 184, 0.18); }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+    <div id="adminSidebar"></div>
+    <main class="ml-64 px-6 py-8 max-w-7xl">
+        <header class="mb-10">
+            <p class="text-sm uppercase tracking-[0.35em] text-sky-400">Investments</p>
+            <h1 class="mt-3 text-4xl font-extrabold text-white">Active Investment Holdings</h1>
+            <p class="max-w-3xl text-slate-400 mt-4">See every portfolio holding stored under user accounts in Firestore.</p>
+        </header>
+
+        <section class="glass-panel rounded-[2rem] p-8 shadow-2xl shadow-slate-950/40">
+            <div class="flex items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Portfolio Summary</h2>
+                    <p class="text-slate-400 mt-2">This page aggregates user portfolio entries from each user document.</p>
+                </div>
+                <button id="refreshInvestments" class="rounded-3xl border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition">Refresh</button>
+            </div>
+
+            <div class="grid gap-6 lg:grid-cols-3 mb-8">
+                <div class="rounded-3xl border border-slate-700 bg-slate-950/80 p-6">
+                    <p class="text-sm uppercase tracking-[0.35em] text-slate-400">Holdings</p>
+                    <p id="investmentCount" class="mt-4 text-3xl font-semibold text-white">0</p>
+                </div>
+                <div class="rounded-3xl border border-slate-700 bg-slate-950/80 p-6">
+                    <p class="text-sm uppercase tracking-[0.35em] text-slate-400">Total Invested</p>
+                    <p id="investmentTotal" class="mt-4 text-3xl font-semibold text-white">$0.00</p>
+                </div>
+                <div class="rounded-3xl border border-slate-700 bg-slate-950/80 p-6">
+                    <p class="text-sm uppercase tracking-[0.35em] text-slate-400">Users with Positions</p>
+                    <p id="holdersCount" class="mt-4 text-3xl font-semibold text-white">0</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left text-sm text-slate-300">
+                    <thead class="border-b border-slate-700 text-slate-400">
+                        <tr>
+                            <th class="px-5 py-4">User</th>
+                            <th class="px-5 py-4">Symbol</th>
+                            <th class="px-5 py-4">Quantity</th>
+                            <th class="px-5 py-4">Avg Price</th>
+                            <th class="px-5 py-4">Market Value</th>
+                            <th class="px-5 py-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="investmentBody" class="divide-y divide-slate-700">
+                        <tr><td colspan="6" class="px-6 py-12 text-center text-slate-400">Loading investment data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4',
+            authDomain: 'ctc-capital.firebaseapp.com',
+            projectId: 'ctc-capital',
+            storageBucket: 'ctc-capital.firebasestorage.app',
+            messagingSenderId: '563837502113',
+            appId: '1:563837502113:web:d84ae0e9d07c997ebb26e0',
+            measurementId: 'G-7L643VX04V'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const investmentBody = document.getElementById('investmentBody');
+        const investmentCount = document.getElementById('investmentCount');
+        const investmentTotal = document.getElementById('investmentTotal');
+        const holdersCount = document.getElementById('holdersCount');
+        const refreshInvestments = document.getElementById('refreshInvestments');
+
+        function formatCurrency(value) {
+            return `$${Number(value || 0).toFixed(2)}`;
+        }
+
+        async function loadInvestments() {
+            try {
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let rows = '';
+                let totalValue = 0;
+                const portfolios = [];
+
+                for (const userDoc of usersSnapshot.docs) {
+                    const userId = userDoc.id;
+                    const portfolioSnapshot = await getDocs(collection(db, 'users', userId, 'portfolio'));
+                    portfolioSnapshot.forEach(portItem => {
+                        portfolios.push({ uid: userId, userEmail: userDoc.data().email || 'Unknown', ...portItem.data() });
+                    });
+                }
+
+                if (!portfolios.length) {
+                    investmentBody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-slate-400">No active investment positions found.</td></tr>';
+                    investmentCount.textContent = '0';
+                    investmentTotal.textContent = '$0.00';
+                    holdersCount.textContent = '0';
+                    return;
+                }
+
+                const uniqueHolders = new Set(portfolios.map(item => item.uid));
+                portfolios.forEach(position => {
+                    const marketValue = Number(position.quantityOwned || 0) * Number(position.currentPrice || position.averagePrice || 0);
+                    totalValue += marketValue;
+                    rows += `
+                        <tr class="bg-slate-950/80 hover:bg-slate-900">
+                            <td class="px-5 py-4 text-white">${position.userEmail}</td>
+                            <td class="px-5 py-4 text-slate-300">${position.symbol || 'N/A'}</td>
+                            <td class="px-5 py-4 text-slate-300">${Number(position.quantityOwned || 0).toFixed(2)}</td>
+                            <td class="px-5 py-4 text-slate-300">${formatCurrency(position.averagePrice || position.currentPrice || 0)}</td>
+                            <td class="px-5 py-4 text-slate-300">${formatCurrency(marketValue)}</td>
+                            <td class="px-5 py-4 text-slate-300">${position.status || 'active'}</td>
+                        </tr>
+                    `;
+                });
+
+                investmentBody.innerHTML = rows;
+                investmentCount.textContent = portfolios.length;
+                investmentTotal.textContent = formatCurrency(totalValue);
+                holdersCount.textContent = String(uniqueHolders.size);
+            } catch (error) {
+                console.error('Error loading investments:', error);
+                investmentBody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-red-400">Unable to load investment positions.</td></tr>';
+            }
+        }
+
+        refreshInvestments.addEventListener('click', loadInvestments);
+
+        onAuthStateChanged(auth, (user) => {
+            // Removed forced redirect to login/index. Page will not redirect if not authenticated.
+            loadInvestments();
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>

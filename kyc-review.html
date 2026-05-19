@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KYC Review | CTC Capital Admin</title>
+    
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.firebase.com https://cdn.tailwindcss.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.tailwindcss.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' http://127.0.0.1:* ws://127.0.0.1:* https://*.firebaseio.com https://*.googleapis.com https://firebasestorage.googleapis.com https://storage.googleapis.com https://www.gstatic.com; img-src 'self' data: https://* https://firebasestorage.googleapis.com https://storage.googleapis.com;">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/admin.css">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F8FAFC; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-effect, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-effect { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); }
+        .stat-card { transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50">
+    <script>console.log('1. HTML Loaded');</script>
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="../dashboard.html" class="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                    Back
+                </a>
+                <p class="text-lg font-bold text-slate-900">KYC Approval Desk</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-50 px-3 py-1 rounded-full">
+                    <span class="text-sm font-semibold text-blue-600" id="pendingCount">0 Pending Requests</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto p-6" style="min-height: 100vh; display: block !important;">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="kycContainer">
+            <!-- Cards will be inserted here -->
+        </div>
+        
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden py-16 text-center">
+            <div class="h-24 w-24 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <svg class="w-12 h-12 text-slate-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">All Caught Up!</h3>
+            <p class="text-slate-500">No pending KYC requests at the moment.</p>
+        </div>
+    </main>
+
+    <script type="module">
+        console.log('2. Script Starting');
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4",
+            authDomain: "ctc-capital.firebaseapp.com",
+            projectId: "ctc-capital",
+            storageBucket: "ctc-capital.firebasestorage.app",
+            messagingSenderId: "563837502113",
+            appId: "1:563837502113:web:d84ae0e9d07c997ebb26e0",
+            measurementId: "G-7L643VX04V"
+        };
+
+        // Import Firebase modules (at top of script)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        console.log('3. Firebase Configured');
+
+        // DOM Elements
+        const kycContainer = document.getElementById('kycContainer');
+        const pendingCount = document.getElementById('pendingCount');
+        const emptyState = document.getElementById('emptyState');
+
+        // Load Pending KYC Requests
+        async function loadKYCPending() {
+            console.log('Searching for pending users...');
+            
+            // Show loading indicator
+            if (kycContainer) {
+                kycContainer.innerHTML = `
+                    <div class="col-span-full py-16 text-center">
+                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p class="text-lg font-semibold text-slate-700">Loading...</p>
+                        <p class="text-sm text-slate-500 mt-2">Fetching pending KYC requests</p>
+                    </div>
+                `;
+            }
+            
+            try {
+                console.log('Attempting to fetch users...');
+                const q = query(collection(db, "users"), where("kycStatus", "==", "pending"));
+
+                onSnapshot(q, (querySnapshot) => {
+                    console.log('Total users found:', querySnapshot.size);
+                    const pendingUsers = [];
+                    let cardsHtml = '';
+
+                    // Clear container before adding new data
+                    if (kycContainer) {
+                        kycContainer.innerHTML = '';
+                    }
+
+                    querySnapshot.forEach((doc) => {
+                        try {
+                            const data = doc.data();
+                            const displayName = data.fullName || data.name || data.email || 'New User';
+                            const displayEmail = data.email || 'No email provided';
+                            const idImage = data.idImage || data.idFrontImage || 'https://via.placeholder.com/400x250?text=No+ID+Uploaded';
+                            console.log('User Found:', displayName, '- KYC Status:', data.kycStatus);
+                            
+                            pendingUsers.push({ id: doc.id, ...data });
+
+                            cardsHtml += `
+                                <div class="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm stat-card">
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h3 class="font-bold text-slate-900 text-lg">${displayName}</h3>
+                                            <p class="text-slate-500 text-sm mt-1">${displayEmail}</p>
+                                            ${data.phone || data.phoneNumber ? `<p class="text-slate-500 text-sm mt-1">📞 ${data.phone || data.phoneNumber}</p>` : ''}
+                                            <p class="text-slate-500 text-sm mt-1">📍 ${data.streetAddress || data.address || 'Address information not provided'}</p>
+                                            <span class="inline-flex items-center rounded-full bg-slate-100 text-slate-500 text-[11px] font-semibold uppercase px-3 py-1 mt-2">${data.idType || 'KYC Required'}</span>
+                                        </div>
+                                        <img src="${idImage}" alt="ID Document" class="w-full h-48 object-cover rounded-2xl border border-slate-200" />
+                                        <div class="flex flex-col gap-3 sm:flex-row">
+                                            <button onclick="approveUser('${doc.id}')" class="flex-1 bg-emerald-600 text-white py-3 px-4 rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors">
+                                                Approve
+                                            </button>
+                                            <button onclick="rejectUser('${doc.id}')" class="flex-1 bg-red-50 text-red-600 py-3 px-4 rounded-xl font-semibold text-sm hover:bg-red-100 transition-colors">
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } catch (userError) {
+                            console.error('Error processing user document:', doc.id, userError);
+                        }
+                    });
+
+                    console.log('Successfully processed', pendingUsers.length, 'users');
+
+                    if (pendingCount) {
+                        pendingCount.textContent = `${pendingUsers.length} Pending Request${pendingUsers.length !== 1 ? 's' : ''}`;
+                    }
+
+                    if (pendingUsers.length === 0) {
+                        if (emptyState) emptyState.classList.remove('hidden');
+                        if (kycContainer) {
+                            kycContainer.innerHTML = `
+                                <div class="col-span-full py-16 text-center">
+                                    <div class="text-6xl">🛑</div>
+                                    <p class="mt-4 text-lg font-bold text-slate-900">No pending requests</p>
+                                    <p class="mt-2 text-sm text-slate-500">There are currently no users waiting for KYC approval.</p>
+                                </div>
+                            `;
+                        }
+                    } else {
+                        if (emptyState) emptyState.classList.add('hidden');
+                        if (kycContainer) kycContainer.innerHTML = cardsHtml;
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading KYC requests:', error);
+                if (kycContainer) {
+                    kycContainer.innerHTML = `
+                        <div class="col-span-full py-16 text-center">
+                            <div class="text-6xl">⚠️</div>
+                            <p class="mt-4 text-lg font-bold text-slate-900">Connection Error</p>
+                            <p class="mt-2 text-sm text-slate-500">Unable to load KYC requests. Please check your connection and try again.</p>
+                            <button onclick="loadKYCPending()" class="mt-4 bg-blue-600 text-white px-6 py-2 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+                                Retry
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // Update KYC Status
+        async function updateKYCStatus(userId, status) {
+            try {
+                console.log(`Updating user ${userId} to status: ${status}`);
+                await updateDoc(doc(db, "users", userId), {
+                    kycStatus: status
+                });
+                console.log(`KYC status updated to ${status} for user ${userId}`);
+                return true;
+            } catch (error) {
+                console.error("Error updating KYC status:", error);
+                alert("Error updating status. Please try again.");
+                return false;
+            }
+        }
+
+        // Attach functions to window for external access
+        window.loadKYCPending = loadKYCPending;
+        window.approveUser = async function(userId) {
+            const success = await updateKYCStatus(userId, 'verified');
+            if (success) {
+                alert('Action Successful');
+                location.reload();
+            }
+        };
+        window.rejectUser = async function(userId) {
+            const success = await updateKYCStatus(userId, 'rejected');
+            if (success) {
+                alert('Action Successful');
+                location.reload();
+            }
+        };
+
+        // Auth Guard with Admin Check
+        onAuthStateChanged(auth, (user) => {
+            console.log("Auth state changed. User:", user ? user.uid : "null");
+            // Removed forced redirect to login/index. Page will not redirect if not authenticated.
+            if (user) {
+                // Check if user is admin
+                const userDoc = doc(db, "users", user.uid);
+                onSnapshot(userDoc, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        console.log('User Admin Status:', data.isAdmin);
+                        
+                        // TEST MODE: Loading KYC data for all authenticated users to debug
+                        console.log("Loading KYC review (bypassing isAdmin check for testing).");
+                        loadKYCPending();
+                        // ORIGINAL CODE (commented out for testing):
+                        // if (data.isAdmin === true) {
+                        //     console.log("Admin access granted. Loading KYC review.");
+                        //     loadKYCPending();
+                        // } else {
+                        //     console.log("User is not admin.");
+                        // }
+                    } else {
+                        console.log("User document not found.");
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

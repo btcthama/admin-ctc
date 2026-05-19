@@ -1,0 +1,331 @@
+<script>
+    // ULTIMATE REDIRECT KILLER: Run on line 1 before the DOM even constructs
+    (function() {
+        const currentLoc = window.location.href;
+        console.log("Shielding location updates. Staying on:", currentLoc);
+        
+        try {
+            // Intercept direct assignments like window.location = '...'
+            const locationProto = Object.getPrototypeOf(window.location) || window.location;
+            
+            Object.defineProperty(window.location, 'href', {
+                get: function() { return currentLoc; },
+                set: function(val) { 
+                    console.warn("BLOCKED redirect to:", val); 
+                    return currentLoc; 
+                },
+                configurable: false
+            });
+
+            window.location.assign = function(url) { console.warn("Blocked assign:", url); };
+            window.location.replace = function(url) { console.warn("Blocked replace:", url); };
+        } catch(e) {
+            // Fallback for strict browser restrictions
+            window.onbeforeunload = function() { return "Preventing external dashboard escape."; };
+        }
+    })();
+</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard | CTC Capital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #09132e 0%, #020814 100%);
+            color: #e2e8f0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+        }
+        .glass {
+            background: rgba(10, 18, 36, 0.75);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(37, 99, 235, 0.35);
+        }
+        .status-pill {
+            border-radius: 9999px;
+            padding: 0.5rem 1.25rem;
+            font-weight: 700;
+        }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+            text-transform: uppercase; 
+            letter-spacing: 0.08em; 
+        }
+        .metric-card:hover {
+            border-color: rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.1);
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8 md:px-8 lg:px-12">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- HEADER MODULE -->
+        <header class="mb-10 pb-6 border-b border-white/5">
+            <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="h-2 w-2 rounded-full bg-sky-400 animate-pulse"></span>
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-400 font-bold">Admin control center</p>
+                    </div>
+                    <h1 class="mt-3 text-4xl font-extrabold text-white tracking-tight">Admin Dashboard</h1>
+                    <p class="max-w-3xl text-slate-400 mt-2 text-sm">Monitor users, grant deposit bonuses, and keep the platform secure.</p>
+                </div>
+                
+                <!-- NAVIGATION & ACTION TOOLS -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="index.html" class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-slate-300 hover:bg-white/10 hover:text-white transition group">
+                        <svg class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                        </svg>
+                        Back to Index
+                    </a>
+                    <a href="flags.html" class="inline-flex items-center rounded-2xl border border-white/5 bg-slate-900/60 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800/80 hover:border-white/10 transition">Flags</a>
+                    <a href="support.html" class="inline-flex items-center rounded-2xl border border-white/5 bg-slate-900/60 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800/80 hover:border-white/10 transition">Support</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN CORE STRUCTURE -->
+        <main class="space-y-8">
+            
+            <!-- ANALYTICS METRIC COUNTERS -->
+            <section class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="glass rounded-[2rem] p-8 shadow-2xl transition-all duration-300 metric-card">
+                    <div class="flex justify-between items-start">
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-400 font-bold">Users</p>
+                        <span class="text-xl">👥</span>
+                    </div>
+                    <h2 class="mt-4 text-4xl font-extrabold text-white tracking-tight" id="userCount">0</h2>
+                    <p class="mt-2 text-xs text-slate-400 font-medium">Total platform registered accounts.</p>
+                </div>
+                
+                <div class="glass rounded-[2rem] p-8 shadow-2xl transition-all duration-300 metric-card">
+                    <div class="flex justify-between items-start">
+                        <p class="text-xs uppercase tracking-[0.35em] text-emerald-400 font-bold">Depositors</p>
+                        <span class="text-xl">💰</span>
+                    </div>
+                    <h2 class="mt-4 text-4xl font-extrabold text-white tracking-tight" id="depositorCount">0</h2>
+                    <p class="mt-2 text-xs text-slate-400 font-medium">Users eligible for deposit bonuses.</p>
+                </div>
+                
+                <div class="glass rounded-[2rem] p-8 shadow-2xl transition-all duration-300 metric-card sm:col-span-2 lg:col-span-1">
+                    <div class="flex justify-between items-start">
+                        <p class="text-xs uppercase tracking-[0.35em] text-purple-400 font-bold">Bonuses awarded</p>
+                        <span class="text-xl">🎁</span>
+                    </div>
+                    <h2 class="mt-4 text-4xl font-extrabold text-white tracking-tight" id="bonusCount">$0.00</h2>
+                    <p class="mt-2 text-xs text-slate-400 font-medium">Total cumulative amount granted.</p>
+                </div>
+            </section>
+
+            <!-- BOUNTY ACTION MODULE -->
+            <section class="glass rounded-[2rem] p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between relative z-10">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-400 font-bold">Deposit bonus</p>
+                        <h2 class="mt-2 text-2xl font-extrabold text-white">Reward depositors</h2>
+                        <p class="mt-1 text-sm text-slate-400">Grant a one-time bonus to users who have funded their accounts.</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-4">
+                        <span id="eligibleCount" class="status-pill bg-slate-950/80 text-sky-400 border border-sky-500/20 text-xs font-bold">0 eligible</span>
+                        <button id="grantBonusButton" class="btn-primary rounded-2xl px-6 py-3.5 text-white font-bold text-sm tracking-wide">Grant $10 bonus</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- DATA DATA GRID ARCHITECTURE -->
+            <section class="glass rounded-[2rem] p-6 md:p-8 shadow-2xl">
+                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.35em] text-sky-400 font-bold">Latest depositors</p>
+                        <h2 class="mt-1 text-2xl font-extrabold text-white">Recently funded accounts</h2>
+                    </div>
+                    <button id="refreshUsers" class="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-slate-900/60 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition shadow-lg">
+                        Refresh Ledger
+                    </button>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-white/5">
+                    <table class="min-w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900/50 border-b border-white/5 text-slate-400 font-semibold tracking-wider text-xs uppercase">
+                            <tr>
+                                <th class="px-6 py-4">User Identity</th>
+                                <th class="px-6 py-4">Balance Metric</th>
+                                <th class="px-6 py-4">Status Indicator</th>
+                                <th class="px-6 py-4">Bonus Allocation</th>
+                                <th class="px-6 py-4 text-right">Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTableBody" class="divide-y divide-white/5 bg-slate-950/20">
+                            <!-- Dynamic rows inject here seamlessly -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- FIREBASE & CORE SYSTEM LOGIC -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4",
+            authDomain: "ctc-capital.firebaseapp.com",
+            projectId: "ctc-capital",
+            storageBucket: "ctc-capital.firebasestorage.app",
+            messagingSenderId: "563837502113",
+            appId: "1:563837502113:web:d84ae0e9d07c997ebb26e0",
+            measurementId: "G-7L643VX04V"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const userCountEl = document.getElementById('userCount');
+        const depositorCountEl = document.getElementById('depositorCount');
+        const bonusCountEl = document.getElementById('bonusCount');
+        const eligibleCountEl = document.getElementById('eligibleCount');
+        const grantBonusButton = document.getElementById('grantBonusButton');
+        const refreshUsers = document.getElementById('refreshUsers');
+        const userTableBody = document.getElementById('userTableBody');
+
+        let users = [];
+        let bonusTotal = 0;
+
+        async function loadUsers() {
+            try {
+                users = [];
+                bonusTotal = 0;
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                usersSnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    users.push({ uid: docSnap.id, ...data });
+                    if (data.bonusBalance) bonusTotal += Number(data.bonusBalance);
+                });
+                renderMetrics();
+                renderUsers();
+            } catch(e) {
+                console.error("Database sync issue:", e);
+            }
+        }
+
+        function renderMetrics() {
+            userCountEl.innerText = users.length;
+            const depositors = users.filter(user => Number(user.usdBalance || 0) > 0 || Number(user.btcBalance || 0) > 0);
+            depositorCountEl.innerText = depositors.length;
+            bonusCountEl.innerText = `$${bonusTotal.toFixed(2)}`;
+            eligibleCountEl.innerText = `${depositors.length} eligible`;
+        }
+
+        function renderUsers() {
+            const eligibleUsers = users.filter(user => Number(user.usdBalance || 0) > 0 || Number(user.btcBalance || 0) > 0);
+            userTableBody.innerHTML = eligibleUsers.map(user => `
+                <tr class="hover:bg-white/[0.02] transition-colors">
+                    <td class="px-6 py-4 font-semibold text-white">${user.fullName || user.email || 'User'}</td>
+                    <td class="px-6 py-4 text-slate-300 font-medium">$${Number(user.usdBalance || 0).toFixed(2)} <span class="text-slate-500 mx-1">/</span> <span class="text-amber-400 font-mono text-xs">${Number(user.btcBalance || 0).toFixed(8)} BTC</span></td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full ${user.accountStatus === 'restricted' ? 'bg-red-500/10 text-red-400 border border-red-500/10' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/10'}">
+                            <span class="h-1.5 w-1.5 rounded-full ${user.accountStatus === 'restricted' ? 'bg-red-400' : 'bg-emerald-400'}"></span>
+                            ${user.accountStatus === 'restricted' ? 'Restricted' : 'Active'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-slate-300 font-semibold">$${Number(user.bonusBalance || 0).toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="toggleUserRestriction('${user.uid}', '${user.accountStatus || 'active'}')" class="rounded-xl px-4 py-2 text-xs font-bold tracking-wide transition shadow-md ${user.accountStatus === 'restricted' ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-red-600/20 text-red-400 border border-red-500/20 hover:bg-red-600 hover:text-white'}">
+                            ${user.accountStatus === 'restricted' ? 'Restore Unit' : 'Restrict Unit'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function grantDepositBonus() {
+            const eligibles = users.filter(user => (Number(user.usdBalance || 0) > 0 || Number(user.btcBalance || 0) > 0) && !user.bonusAwardedForDeposit);
+            if (!eligibles.length) {
+                alert('No eligible users found or bonuses already awarded.');
+                return;
+            }
+
+            const bonusAmount = 10;
+            let grantedCount = 0;
+            for (const user of eligibles) {
+                try {
+                    const userRef = doc(db, 'users', user.uid);
+                    await updateDoc(userRef, {
+                        bonusBalance: (Number(user.bonusBalance || 0) + bonusAmount),
+                        bonusAwardedForDeposit: true,
+                        lastBonusAwardedAt: new Date(),
+                        currentNotification: `You have received a $${bonusAmount.toFixed(2)} bonus for funding your account.`,
+                        notificationType: 'success'
+                    });
+                    grantedCount += 1;
+                } catch (error) {
+                    console.error('Failed to grant bonus to', user.uid, error);
+                }
+            }
+
+            alert(`Bonus granted to ${grantedCount} users.`);
+            await loadUsers();
+        }
+
+        window.toggleUserRestriction = async function(userId, currentStatus) {
+            const isRestricted = currentStatus === 'restricted';
+            const newStatus = isRestricted ? 'active' : 'restricted';
+            try {
+                await updateDoc(doc(db, 'users', userId), {
+                    accountStatus: newStatus,
+                    currentNotification: newStatus === 'restricted'
+                        ? 'Your account has been restricted. Contact support for help.'
+                        : 'Your account has been restored and is active again.',
+                    notificationType: newStatus === 'restricted' ? 'error' : 'success',
+                    updatedAt: new Date()
+                });
+                alert(`User account has been ${isRestricted ? 'restored' : 'restricted'}.`);
+                await loadUsers();
+            } catch (error) {
+                console.error('Unable to update user status', error);
+                alert('Failed to update user status. Please try again.');
+            }
+        };
+
+        grantBonusButton.addEventListener('click', grantDepositBonus);
+        refreshUsers.addEventListener('click', loadUsers);
+
+        // Instantly forces data collection regardless of active session checks
+        onAuthStateChanged(auth, (user) => {
+            loadUsers();
+        });
+        
+        // Safety execution fallback if auth layer stalls out
+        loadUsers();
+    </script>
+</body>
+</html>

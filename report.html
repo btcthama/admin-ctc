@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Performance Reports | CTC Capital Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020814; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .metric-card, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel { background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(18px); border: 1px solid rgba(148, 163, 184, 0.18); }
+        .metric-card { background: rgba(15, 23, 42, 0.82); border: 1px solid rgba(148, 163, 184, 0.15); border-radius: 1.5rem; padding: 1.5rem; }
+        .metric-value { font-size: 2.5rem; font-weight: 700; color: #60a5fa; }
+        .metric-label { font-size: 0.875rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+    <div id="adminSidebar"></div>
+    <main class="ml-64 px-6 py-8 max-w-7xl">
+        <header class="mb-10">
+            <p class="text-sm uppercase tracking-[0.35em] text-sky-400">Performance Reports</p>
+            <h1 class="mt-3 text-4xl font-extrabold text-white">Website Performance Dashboard</h1>
+            <p class="max-w-3xl text-slate-400 mt-4">Monitor key metrics and performance indicators for CTC Capital platform operations.</p>
+        </header>
+
+        <section class="space-y-8">
+            <!-- Metrics Grid -->
+            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                <div class="metric-card">
+                    <p class="metric-label">Total Users</p>
+                    <p id="totalUsers" class="metric-value">0</p>
+                    <p class="text-slate-400 text-sm mt-2">Registered accounts</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Active Users</p>
+                    <p id="activeUsers" class="metric-value">0</p>
+                    <p class="text-slate-400 text-sm mt-2">Logged in this week</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Total Transactions</p>
+                    <p id="totalTransactions" class="metric-value">0</p>
+                    <p class="text-slate-400 text-sm mt-2">All time</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Transaction Volume</p>
+                    <p id="transactionVolume" class="metric-value">$0.00</p>
+                    <p class="text-slate-400 text-sm mt-2">USD equivalent</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Support Tickets</p>
+                    <p id="totalTickets" class="metric-value">0</p>
+                    <p class="text-slate-400 text-sm mt-2">All time</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Resolved Tickets</p>
+                    <p id="resolvedTickets" class="metric-value">0</p>
+                    <p class="text-slate-400 text-sm mt-2">Completed</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Total USD Balance</p>
+                    <p id="totalUsdBalance" class="metric-value">$0.00</p>
+                    <p class="text-slate-400 text-sm mt-2">User holdings</p>
+                </div>
+                <div class="metric-card">
+                    <p class="metric-label">Total BTC Balance</p>
+                    <p id="totalBtcBalance" class="metric-value">0.0000</p>
+                    <p class="text-slate-400 text-sm mt-2">User holdings</p>
+                </div>
+            </div>
+
+            <!-- Detailed Reports -->
+            <div class="grid gap-6 lg:grid-cols-2">
+                <div class="glass-panel rounded-[2rem] p-8 shadow-2xl shadow-slate-950/40">
+                    <div class="flex items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-white">Recent Transactions</h2>
+                            <p class="text-slate-400 mt-2">Latest user transaction activity</p>
+                        </div>
+                        <button id="refreshReports" class="rounded-3xl border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition">Refresh</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-left text-sm text-slate-300">
+                            <thead class="border-b border-slate-700 text-slate-400">
+                                <tr>
+                                    <th class="px-4 py-3">User</th>
+                                    <th class="px-4 py-3">Type</th>
+                                    <th class="px-4 py-3">Amount</th>
+                                    <th class="px-4 py-3">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTransactionsBody" class="divide-y divide-slate-700">
+                                <tr><td colspan="4" class="px-4 py-8 text-center text-slate-400">Loading transactions...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-[2rem] p-8 shadow-2xl shadow-slate-950/40">
+                    <h2 class="text-xl font-semibold text-white mb-6">Support Ticket Status</h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-300">Open Tickets</span>
+                            <span id="openTickets" class="text-2xl font-bold text-amber-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-300">Resolved Tickets</span>
+                            <span id="resolvedTicketsDetail" class="text-2xl font-bold text-emerald-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-300">Pending Tickets</span>
+                            <span id="pendingTickets" class="text-2xl font-bold text-blue-400">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-300">Average Resolution Time</span>
+                            <span id="avgResolutionTime" class="text-2xl font-bold text-purple-400">N/A</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4',
+            authDomain: 'ctc-capital.firebaseapp.com',
+            projectId: 'ctc-capital',
+            storageBucket: 'ctc-capital.firebasestorage.app',
+            messagingSenderId: '563837502113',
+            appId: '1:563837502113:web:d84ae0e9d07c997ebb26e0',
+            measurementId: 'G-7L643VX04V'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // DOM Elements
+        const totalUsersEl = document.getElementById('totalUsers');
+        const activeUsersEl = document.getElementById('activeUsers');
+        const totalTransactionsEl = document.getElementById('totalTransactions');
+        const transactionVolumeEl = document.getElementById('transactionVolume');
+        const totalTicketsEl = document.getElementById('totalTickets');
+        const resolvedTicketsEl = document.getElementById('resolvedTickets');
+        const totalUsdBalanceEl = document.getElementById('totalUsdBalance');
+        const totalBtcBalanceEl = document.getElementById('totalBtcBalance');
+        const recentTransactionsBody = document.getElementById('recentTransactionsBody');
+        const openTicketsEl = document.getElementById('openTickets');
+        const resolvedTicketsDetailEl = document.getElementById('resolvedTicketsDetail');
+        const pendingTicketsEl = document.getElementById('pendingTickets');
+        const avgResolutionTimeEl = document.getElementById('avgResolutionTime');
+        const refreshReports = document.getElementById('refreshReports');
+
+        function formatCurrency(amount) {
+            return `$${Number(amount || 0).toFixed(2)}`;
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString();
+        }
+
+        async function loadReports() {
+            try {
+                // Load users
+                const usersSnapshot = await getDocs(collection(db, 'users'));
+                let totalUsers = 0;
+                let activeUsers = 0;
+                let totalUsdBalance = 0;
+                let totalBtcBalance = 0;
+                const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+                usersSnapshot.forEach(doc => {
+                    const user = doc.data();
+                    totalUsers++;
+                    totalUsdBalance += Number(user.usdBalance || 0);
+                    totalBtcBalance += Number(user.btcBalance || 0);
+                    if (user.lastLoginAt && user.lastLoginAt.toDate > oneWeekAgo) {
+                        activeUsers++;
+                    }
+                });
+
+                totalUsersEl.textContent = totalUsers;
+                activeUsersEl.textContent = activeUsers;
+                totalUsdBalanceEl.textContent = formatCurrency(totalUsdBalance);
+                totalBtcBalanceEl.textContent = formatCurrency(totalBtcBalance);
+
+                // Load transactions
+                const transactionsSnapshot = await getDocs(collection(db, 'users'));
+                let totalTransactions = 0;
+                let transactionVolume = 0;
+                const recentTransactions = [];
+
+                for (const userDoc of transactionsSnapshot.docs) {
+                    const userId = userDoc.id;
+                    const userTransactions = await getDocs(collection(db, 'users', userId, 'transactions'));
+                    userTransactions.forEach(txDoc => {
+                        const tx = txDoc.data();
+                        totalTransactions++;
+                        transactionVolume += Number(tx.totalAmount || tx.amount || 0);
+                        recentTransactions.push({ ...tx, userEmail: userDoc.data().email || 'Unknown' });
+                    });
+                }
+
+                // Sort and limit recent transactions
+                recentTransactions.sort((a, b) => (b.createdAt?.toDate?.() || 0) - (a.createdAt?.toDate?.() || 0));
+                const recent = recentTransactions.slice(0, 10);
+
+                totalTransactionsEl.textContent = totalTransactions;
+                transactionVolumeEl.textContent = formatCurrency(transactionVolume);
+
+                recentTransactionsBody.innerHTML = recent.map(tx => `
+                    <tr class="bg-slate-950/80 hover:bg-slate-900">
+                        <td class="px-4 py-3 text-white">${tx.userEmail}</td>
+                        <td class="px-4 py-3 text-slate-300">${tx.type || 'N/A'}</td>
+                        <td class="px-4 py-3 text-slate-300">${formatCurrency(tx.totalAmount || tx.amount)}</td>
+                        <td class="px-4 py-3 text-slate-300">${formatDate(tx.createdAt)}</td>
+                    </tr>
+                `).join('') || '<tr><td colspan="4" class="px-4 py-8 text-center text-slate-400">No recent transactions</td></tr>';
+
+                // Load support tickets
+                const ticketsSnapshot = await getDocs(collection(db, 'supportTickets'));
+                let totalTickets = 0;
+                let resolvedTickets = 0;
+                let openTickets = 0;
+                let pendingTickets = 0;
+                const resolutionTimes = [];
+
+                ticketsSnapshot.forEach(doc => {
+                    const ticket = doc.data();
+                    totalTickets++;
+                    if (ticket.status === 'resolved') {
+                        resolvedTickets++;
+                        if (ticket.createdAt && ticket.updatedAt) {
+                            const created = ticket.createdAt.toDate?.() || new Date(ticket.createdAt);
+                            const updated = ticket.updatedAt.toDate?.() || new Date(ticket.updatedAt);
+                            const diffMs = updated - created;
+                            resolutionTimes.push(diffMs);
+                        }
+                    } else if (ticket.status === 'open') {
+                        openTickets++;
+                    } else if (ticket.status === 'pending') {
+                        pendingTickets++;
+                    }
+                });
+
+                totalTicketsEl.textContent = totalTickets;
+                resolvedTicketsEl.textContent = resolvedTickets;
+                openTicketsEl.textContent = openTickets;
+                resolvedTicketsDetailEl.textContent = resolvedTickets;
+                pendingTicketsEl.textContent = pendingTickets;
+
+                // Calculate average resolution time
+                if (resolutionTimes.length > 0) {
+                    const avgMs = resolutionTimes.reduce((a, b) => a + b, 0) / resolutionTimes.length;
+                    const avgHours = Math.round(avgMs / (1000 * 60 * 60));
+                    avgResolutionTimeEl.textContent = `${avgHours}h`;
+                } else {
+                    avgResolutionTimeEl.textContent = 'N/A';
+                }
+
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                // Show error in UI
+                totalUsersEl.textContent = 'Error';
+                activeUsersEl.textContent = 'Error';
+                totalTransactionsEl.textContent = 'Error';
+                transactionVolumeEl.textContent = 'Error';
+                totalTicketsEl.textContent = 'Error';
+                resolvedTicketsEl.textContent = 'Error';
+                totalUsdBalanceEl.textContent = 'Error';
+                totalBtcBalanceEl.textContent = 'Error';
+                recentTransactionsBody.innerHTML = '<tr><td colspan="4" class="px-4 py-8 text-center text-red-400">Error loading data</td></tr>';
+            }
+        }
+
+        refreshReports.addEventListener('click', loadReports);
+
+        onAuthStateChanged(auth, (user) => {
+            // Removed forced redirect to login/index. Page will not redirect if not authenticated.
+            loadReports();
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>

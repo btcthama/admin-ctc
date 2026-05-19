@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deposit Audit Station | CTC Capital Elite</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+@media (max-width: 640px) {
+    h1 { font-size: 1.5rem; }
+    h2 { font-size: 1.25rem; }
+    h3 { font-size: 1.1rem; }
+    .glass, .max-w-md, .max-w-6xl {
+        padding: 1rem !important;
+    }
+}
+.glass { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); }
+.pending-badge { background: linear-gradient(45deg, #ff6b6b, #ee5a24); }
+</style>
+</head>
+<body class="min-h-screen p-6">
+
+<nav class="flex items-center justify-between mb-8">
+<a href="../app/dashboard.html" class="p-3 bg-white/10 rounded-2xl shadow-sm border border-white/20 group">
+<svg class="w-5 h-5 text-white group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</a>
+<h1 class="text-2xl font-bold text-white">Deposit Audit Station</h1>
+<div class="w-10"></div>
+</nav>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+<!-- Pending Deposits List -->
+<div class="lg:col-span-1 glass rounded-3xl p-6">
+<h3 class="text-white font-bold text-lg mb-4">Pending Deposits</h3>
+<div id="depositsList" class="space-y-3 max-h-96 overflow-y-auto">
+<!-- Deposits will be loaded here -->
+</div>
+</div>
+
+<!-- Audit Desk -->
+<div id="auditDesk" class="lg:col-span-2 glass rounded-3xl p-6 hidden">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+<!-- Left Side: User Data -->
+<div class="space-y-4">
+<h4 class="text-white font-bold text-xl mb-4">Deposit Details</h4>
+
+<div class="glass rounded-2xl p-4">
+<h5 class="text-white font-semibold mb-2">Proof of Payment</h5>
+<img id="proofImage" class="w-full h-48 object-cover rounded-xl" src="" alt="Payment Proof">
+</div>
+
+<div class="space-y-3">
+<div class="glass rounded-xl p-3">
+<p class="text-white/70 text-sm">Transaction ID</p>
+<p id="auditTransactionId" class="text-white font-bold cursor-pointer hover:text-blue-300 transition-colors" onclick="window.copyText('auditTransactionId')"></p>
+</div>
+<div class="glass rounded-xl p-3">
+<p class="text-white/70 text-sm">User Email</p>
+<p id="auditUserEmail" class="text-white font-bold"></p>
+</div>
+<div class="glass rounded-xl p-3">
+<p class="text-white/70 text-sm">Amount Claimed</p>
+<p id="auditAmountClaimed" class="text-white font-bold"></p>
+</div>
+<div class="glass rounded-xl p-3">
+<p class="text-white/70 text-sm">Payment Method</p>
+<p id="auditMethod" class="text-white font-bold"></p>
+</div>
+</div>
+</div>
+
+<!-- Right Side: Admin Controls -->
+<div class="space-y-4">
+<h4 class="text-white font-bold text-xl mb-4">Admin Decision</h4>
+
+<form id="auditForm" class="space-y-4">
+<div class="flex gap-3">
+<button type="button" onclick="window.approveDeposit()" class="flex-1 bg-green-500 hover:bg-green-600 text-white p-3 rounded-xl font-bold transition-all">Finalize & Credit Account</button>
+<button type="button" onclick="window.rejectDeposit()" class="flex-1 bg-red-500 hover:bg-red-600 text-white p-3 rounded-xl font-bold transition-all">Decline Request</button>
+</div>
+</form>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<!-- Success Message -->
+<div id="successMessage" class="hidden fixed top-4 right-4 bg-green-500 text-white p-4 rounded-xl shadow-lg z-50">
+    <p class="font-bold">✅ Deposit Processed Successfully!</p>
+</div>
+
+<!-- Error Message -->
+<div id="errorMessage" class="hidden fixed top-4 right-4 bg-red-500 text-white p-4 rounded-xl shadow-lg z-50">
+    <p class="font-bold" id="errorText"></p>
+</div>
+
+<!-- Notification popup -->
+<div id="notificationPopup" class="hidden fixed bottom-6 right-6 z-50 w-[min(95%,24rem)] rounded-3xl border border-white/10 bg-white/10 p-5 shadow-2xl shadow-slate-950/40 backdrop-blur-xl">
+  <p id="notificationPopupText" class="text-sm leading-6 text-white"></p>
+  <button id="clearNotificationBtn" class="mt-4 inline-flex w-full justify-center rounded-2xl bg-[#0056B3] px-4 py-3 text-sm font-semibold text-white hover:bg-blue-500 transition">
+    Clear & Close
+  </button>
+</div>
+
+<!-- Admin Verification Modal -->
+<div id="verificationModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-[#0056B3] to-[#002D5C] px-6 py-5">
+            <h2 class="text-xl font-bold text-white">Verify & Fund Account</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="text-center">
+                <img id="modalProofImage" class="w-full h-32 object-cover rounded-xl mx-auto" src="" alt="Payment Proof">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Amount to Credit ($)</label>
+                <input type="number" id="creditAmount" placeholder="0.00" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0056B3] focus:border-transparent outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Message to User</label>
+                <textarea id="userMessage" placeholder="Your deposit has been confirmed!" rows="3" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0056B3] focus:border-transparent outline-none resize-none"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="window.closeVerificationModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold transition-all">Cancel</button>
+                <button type="button" onclick="window.executeFunding()" class="flex-1 bg-gradient-to-r from-[#0056B3] to-[#002D5C] hover:from-[#004499] hover:to-[#001F3F] text-white py-3 rounded-xl font-bold transition-all">Confirm & Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Rejection Modal -->
+<div id="rejectionModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-[2rem] max-w-md w-full shadow-2xl overflow-hidden">
+        <div class="bg-gradient-to-r from-red-600 to-red-900 px-6 py-5">
+            <h2 class="text-xl font-bold text-white">Reject Deposit Request</h2>
+        </div>
+        <div class="p-6 space-y-4">
+            <div class="text-center">
+                <img id="rejectionProofImage" class="w-full h-32 object-cover rounded-xl mx-auto" src="" alt="Payment Proof">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold text-slate-700 mb-2">Message to User</label>
+                <textarea id="rejectionMessage" placeholder="Reason for rejection (e.g., Invalid receipt)..." rows="4" class="w-full px-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0056B3] focus:border-transparent outline-none resize-none"></textarea>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="window.closeRejectionModal()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-3 rounded-xl font-bold transition-all">Cancel</button>
+                <button type="button" onclick="window.executeRejection()" class="flex-1 bg-gradient-to-r from-red-600 to-red-900 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-xl font-bold transition-all">Confirm Rejection</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+// Firebase imports
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, updateDoc, addDoc, getDoc, runTransaction, increment } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+    apiKey: "AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4",
+    authDomain: "ctc-capital.firebaseapp.com",
+    projectId: "ctc-capital",
+    storageBucket: "ctc-capital.firebasestorage.app",
+    messagingSenderId: "563837502113",
+    appId: "1:563837502113:web:d84ae0e9d07c997ebb26e0",
+    measurementId: "G-7L643VX04V"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Store current deposit state
+let currentDeposit = null;
+let lastShownNotification = null; // Track the last notification shown by content
+
+// Setup Global UI functions for HTML clicks
+window.copyText = function(id) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text);
+    alert("Copied: " + text);
+};
+
+window.closeVerificationModal = function() {
+    document.getElementById('verificationModal').classList.add('hidden');
+};
+
+window.closeRejectionModal = function() {
+    document.getElementById('rejectionModal').classList.add('hidden');
+};
+
+function showNotification(message) {
+    const popup = document.getElementById('notificationPopup');
+    const text = document.getElementById('notificationPopupText');
+    if (popup && text) {
+        text.textContent = message;
+        popup.classList.remove('hidden');
+    }
+}
+
+function hideNotification() {
+    const popup = document.getElementById('notificationPopup');
+    if (popup) popup.classList.add('hidden');
+}
+
+// Auth Guard
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "../admin_pages/index.html";
+    } else {
+        loadPendingDeposits();
+        
+        // Set up notification listener
+        const userRef = doc(db, 'users', user.uid);
+        onSnapshot(userRef, async (snap) => {
+            if (!snap.exists()) return;
+            const data = snap.data();
+            const message = data.currentNotification || '';
+            // Show notification only if it exists and is different from the last shown one
+            if (message && message !== lastShownNotification) {
+                lastShownNotification = message;
+                showNotification(message);
+                // Clear the notification after showing it to make it one-time
+                try {
+                    await updateDoc(userRef, {
+                        currentNotification: "",
+                        notificationType: ""
+                    });
+                } catch (error) {
+                    console.error('Error clearing notification:', error);
+                }
+            } else if (!message) {
+                hideNotification();
+                lastShownNotification = null; // Reset when no notification
+            }
+        });
+    }
+});
+
+function showSuccess() {
+    const successMsg = document.getElementById('successMessage');
+    if (successMsg) {
+        successMsg.classList.remove('hidden');
+        setTimeout(() => successMsg.classList.add('hidden'), 3000);
+    }
+}
+
+// Fixed target identifier here to consistently process custom interface text
+function showError(message) {
+    const errorMsg = document.getElementById('errorMessage');
+    const errorText = document.getElementById('errorText');
+    if (errorMsg && errorText) {
+        errorText.innerText = message;
+        errorMsg.classList.remove('hidden');
+        setTimeout(() => errorMsg.classList.add('hidden'), 4000);
+    }
+}
+
+async function loadPendingDeposits() {
+    const q = query(collection(db, "deposits"), where("status", "==", "pending"));
+    onSnapshot(q, (querySnapshot) => {
+        const depositsList = document.getElementById('depositsList');
+        if (!depositsList) return;
+        
+        depositsList.innerHTML = '';
+        let found = false;
+        
+        querySnapshot.forEach((docSnap) => {
+            const deposit = docSnap.data();
+            if (deposit.status && String(deposit.status).toLowerCase() === 'pending') {
+                found = true;
+                const depositCard = document.createElement('div');
+                depositCard.className = 'glass rounded-xl p-4 cursor-pointer hover:bg-white/20 transition-all';
+                depositCard.onclick = () => selectDeposit(docSnap.id, deposit);
+                depositCard.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-white font-bold">${deposit.userName || deposit.userEmail || 'User'}</p>
+                            <p class="text-white/70 text-sm">${deposit.method === 'bank' ? 'Bank Transfer' : 'Bitcoin'} - $${parseFloat(deposit.calculatedUsdAmount || 0).toFixed(2)}</p>
+                        </div>
+                        <span class="pending-badge text-white text-xs px-2 py-1 rounded-full">Pending</span>
+                    </div>
+                `;
+                depositsList.appendChild(depositCard);
+            }
+        });
+        
+        if (!found) {
+            const noPending = document.createElement('div');
+            noPending.className = 'text-white/70 text-center p-4';
+            noPending.innerText = 'No pending deposits found.';
+            depositsList.appendChild(noPending);
+        }
+    });
+}
+
+function selectDeposit(depositId, deposit) {
+    currentDeposit = { id: depositId, ...deposit };
+    
+    // Left side panel updating
+    document.getElementById('proofImage').src = deposit.proofOfPayment || '';
+    document.getElementById('auditTransactionId').innerText = deposit.transactionId || 'Not provided';
+    document.getElementById('auditUserEmail').innerText = deposit.userEmail || 'N/A';
+    document.getElementById('auditAmountClaimed').innerText = `$${parseFloat(deposit.calculatedUsdAmount || 0).toFixed(2)}`;
+    document.getElementById('auditMethod').innerText = deposit.method === 'bank' ? 'Bank Transfer' : 'Bitcoin';
+    
+    // Show audit desk controls
+    document.getElementById('auditDesk').classList.remove('hidden');
+}
+
+window.approveDeposit = function() {
+    if (!currentDeposit) {
+        showError('No deposit selected');
+        return;
+    }
+
+    // Populate approval confirmation modal with current deposit data
+    document.getElementById('modalProofImage').src = currentDeposit.proofOfPayment || '';
+    document.getElementById('creditAmount').value = parseFloat(currentDeposit.calculatedUsdAmount || 0).toFixed(2);
+    document.getElementById('userMessage').value = `Your $${parseFloat(currentDeposit.calculatedUsdAmount || 0).toFixed(2)} deposit has been confirmed!`;
+
+    // Display the approval verification modal
+    document.getElementById('verificationModal').classList.remove('hidden');
+};
+
+window.executeFunding = async function() {
+    if (!currentDeposit) {
+        showError('No deposit selected');
+        return;
+    }
+
+    const { id: depositId, uid, method } = currentDeposit;
+    const creditAmount = parseFloat(document.getElementById('creditAmount').value);
+    const userMessage = document.getElementById('userMessage').value.trim();
+    const adminMessage = `Deposit of $${creditAmount.toFixed(2)} approved successfully for ${currentDeposit.userEmail || 'user'}.`;
+
+    if (!creditAmount || creditAmount <= 0) {
+        showError('Please enter a valid amount to credit');
+        return;
+    }
+
+    if (!userMessage) {
+        showError('Please enter a message for the user');
+        return;
+    }
+
+    const confirmBtn = document.querySelector('button[onclick="window.executeFunding()"]');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = 'Processing...';
+    }
+
+    try {
+        const userRef = doc(db, 'users', uid);
+        const depositRef = doc(db, 'deposits', depositId);
+        const adminRef = doc(db, 'users', auth.currentUser.uid);
+
+        await runTransaction(db, async (transaction) => {
+            const userSnap = await transaction.get(userRef);
+            const depositSnap = await transaction.get(depositRef);
+
+            if (!userSnap.exists()) {
+                throw new Error('User profile not found in database.');
+            }
+            if (!depositSnap.exists()) {
+                throw new Error('Deposit record not found.');
+            }
+
+            const depositData = depositSnap.data();
+            if (String(depositData.status).toLowerCase() === 'approved') {
+                throw new Error('Deposit has already been approved.');
+            }
+
+            const walletField = method === 'crypto' ? 'btcBalance' : 'usdBalance';
+
+            transaction.update(userRef, {
+                [walletField]: increment(creditAmount),
+                lastDepositApproval: new Date()
+            });
+            transaction.update(depositRef, {
+                status: 'Approved',
+                approvedAmount: creditAmount,
+                approvedAt: new Date(),
+                adminNote: userMessage // Logs specific admin note to deposit log file
+            });
+            transaction.update(userRef, {
+                currentNotification: userMessage, // FIXED: Now pushes the custom userMessage from input to popup container
+                notificationType: 'success'
+            });
+            transaction.update(adminRef, {
+                currentNotification: adminMessage,
+                notificationType: 'success'
+            });
+        });
+
+        // FIXED: Added 'adminNote' mapping structure down below into receipt tracker history collection
+        await addDoc(collection(db, 'users', uid, 'notifications'), {
+            title: 'Deposit Confirmed',
+            message: `Your deposit of $${creditAmount.toFixed(2)} has been confirmed. Your balance has been updated.`,
+            description: 'Your deposit has been successfully processed and credited to your account.',
+            adminNote: userMessage, // FIXED: Maps dynamic text securely into card items
+            type: 'Financial',
+            createdAt: new Date(),
+            read: false
+        });
+
+        showSuccess();
+        window.closeVerificationModal();
+        document.getElementById('auditDesk').classList.add('hidden');
+        currentDeposit = null;
+    } catch (error) {
+        console.error('Error executing funding:', error);
+        showError(error.message || 'Error processing deposit');
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Confirm & Send';
+        }
+    }
+};
+
+window.rejectDeposit = function() {
+    if (!currentDeposit) {
+        showError('No deposit selected');
+        return;
+    }
+
+    document.getElementById('rejectionProofImage').src = currentDeposit.proofOfPayment || '';
+    document.getElementById('rejectionMessage').value = 'Your deposit request has been declined. Please contact support for details.';
+    document.getElementById('rejectionModal').classList.remove('hidden');
+};
+
+window.executeRejection = async function() {
+    if (!currentDeposit) {
+        showError('No deposit selected');
+        return;
+    }
+
+    const { id: depositId, uid } = currentDeposit;
+    const rejectionMessage = document.getElementById('rejectionMessage').value.trim();
+    const adminRejectionMessage = `Deposit rejected for ${currentDeposit.userEmail || 'user'}. Reason: ${rejectionMessage}`;
+
+    if (!rejectionMessage) {
+        showError('Please enter a rejection message');
+        return;
+    }
+
+    const confirmBtn = document.querySelector('button[onclick="window.executeRejection()"]');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerText = 'Processing...';
+    }
+
+    try {
+        const depositRef = doc(db, 'deposits', depositId);
+        const userRef = doc(db, 'users', uid);
+        const adminRef = doc(db, 'users', auth.currentUser.uid);
+
+        await runTransaction(db, async (transaction) => {
+            const depositSnap = await transaction.get(depositRef);
+            if (!depositSnap.exists()) {
+                throw new Error('Deposit record not found.');
+            }
+
+            transaction.update(depositRef, {
+                status: 'rejected',
+                rejectionReason: rejectionMessage,
+                rejectedAt: new Date(),
+                adminNote: rejectionMessage // Logs rejection specific note to central tracking log
+            });
+            transaction.update(userRef, {
+                currentNotification: rejectionMessage, // FIXED: Now pushes custom note down to target user dashboard popup structure
+                notificationType: 'error'
+            });
+            transaction.update(adminRef, {
+                currentNotification: adminRejectionMessage,
+                notificationType: 'error'
+            });
+        });
+
+        // FIXED: Added 'adminNote' mapping structure down below into receipt rejection tracker history collection
+        await addDoc(collection(db, 'users', uid, 'notifications'), {
+            title: 'Deposit Declined',
+            message: `Your deposit of $${parseFloat(currentDeposit.calculatedUsdAmount || 0).toFixed(2)} was declined. Please contact support for details.`,
+            description: 'Your deposit request could not be processed at this time.',
+            adminNote: rejectionMessage, // FIXED: Dynamic content pass mapped securely here
+            type: 'Financial',
+            createdAt: new Date(),
+            read: false
+        });
+
+        showSuccess();
+        window.closeRejectionModal();
+        document.getElementById('auditDesk').classList.add('hidden');
+        currentDeposit = null;
+    } catch (error) {
+        console.error('Error rejecting deposit:', error);
+        showError(error.message || 'Error processing rejection');
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Confirm Rejection';
+        }
+    }
+};
+
+const clearNotificationBtn = document.getElementById('clearNotificationBtn');
+if (clearNotificationBtn) {
+    clearNotificationBtn.addEventListener('click', async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        await updateDoc(doc(db, 'users', user.uid), {
+            currentNotification: "",
+            notificationType: ""
+        });
+        hideNotification();
+        lastShownNotification = null;
+    });
+}
+</script>
+
+</body>
+</html>

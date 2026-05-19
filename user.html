@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Users | CTC Capital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020814; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel { background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(18px); border: 1px solid rgba(148, 163, 184, 0.18); }
+        .status-pill { border-radius: 9999px; padding: 0.35rem 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+    <div id="adminSidebar"></div>
+    <main class="ml-64 px-6 py-8 max-w-7xl">
+        <header class="mb-10">
+            <p class="text-sm uppercase tracking-[0.35em] text-sky-400">Admin User Panel</p>
+            <h1 class="mt-3 text-4xl font-extrabold text-white">All Registered Users</h1>
+            <p class="max-w-3xl text-slate-400 mt-4">Browse all user accounts from the database and inspect them in a single admin view.</p>
+        </header>
+
+        <section class="glass-panel rounded-[2rem] p-8 shadow-2xl shadow-slate-950/40">
+            <div class="flex items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">User Directory</h2>
+                    <p class="text-slate-400 mt-2">Fetched directly from the Firestore users collection.</p>
+                </div>
+                <button id="refreshUsers" class="rounded-3xl border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition">Refresh</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left text-sm text-slate-300">
+                    <thead class="border-b border-slate-700 text-slate-400">
+                        <tr>
+                            <th class="px-5 py-4">Name</th>
+                            <th class="px-5 py-4">Email</th>
+                            <th class="px-5 py-4">Status</th>
+                            <th class="px-5 py-4">Balance</th>
+                            <th class="px-5 py-4">Joined</th>
+                            <th class="px-5 py-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody" class="divide-y divide-slate-700">
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-400">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4',
+            authDomain: 'ctc-capital.firebaseapp.com',
+            projectId: 'ctc-capital',
+            storageBucket: 'ctc-capital.firebasestorage.app',
+            messagingSenderId: '563837502113',
+            appId: '1:563837502113:web:d84ae0e9d07c997ebb26e0',
+            measurementId: 'G-7L643VX04V'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const usersBody = document.getElementById('usersBody');
+        const refreshUsers = document.getElementById('refreshUsers');
+
+        function formatCurrency(amount) {
+            return `$${Number(amount || 0).toFixed(2)}`;
+        }
+
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            const date = value.toDate ? value.toDate() : new Date(value);
+            return date.toLocaleDateString();
+        }
+
+        async function loadUsers() {
+            try {
+                const snapshot = await getDocs(collection(db, 'users'));
+                if (snapshot.empty) {
+                    usersBody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-slate-400">No users found.</td></tr>';
+                    return;
+                }
+
+                usersBody.innerHTML = '';
+                snapshot.forEach(docSnap => {
+                    const user = { uid: docSnap.id, ...docSnap.data() };
+                    usersBody.innerHTML += `
+                        <tr class="bg-slate-950/80 hover:bg-slate-900">
+                            <td class="px-5 py-4 text-white">${user.fullName || 'Unknown'}</td>
+                            <td class="px-5 py-4 text-slate-300">${user.email || 'No email'}</td>
+                            <td class="px-5 py-4 text-slate-300">${user.accountStatus === 'restricted' ? 'Restricted' : 'Active'}</td>
+                            <td class="px-5 py-4 text-slate-300">${formatCurrency(user.usdBalance || user.balance)}</td>
+                            <td class="px-5 py-4 text-slate-300">${formatDate(user.createdAt)}</td>
+                            <td class="px-5 py-4">
+                                <button onclick="window.location.href='user-details.html?uid=${user.uid}'" class="rounded-full bg-cyan-600 px-4 py-2 text-xs font-semibold text-white hover:bg-cyan-500 transition">Details</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading users:', error);
+                usersBody.innerHTML = '<tr><td colspan="6" class="px-6 py-12 text-center text-red-400">Unable to load users.</td></tr>';
+            }
+        }
+
+        refreshUsers.addEventListener('click', loadUsers);
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = '../public/login.html';
+                return;
+            }
+            loadUsers();
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>

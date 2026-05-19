@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Activity Logs | CTC Capital Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020814; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel { background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(18px); border: 1px solid rgba(148, 163, 184, 0.18); }
+        .status-pill { border-radius: 9999px; padding: 0.35rem 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+    <div id="adminSidebar"></div>
+    <main class="ml-64 px-6 py-8 max-w-7xl">
+        <header class="mb-10">
+            <p class="text-sm uppercase tracking-[0.35em] text-sky-400">Activity Logs</p>
+            <h1 class="mt-3 text-4xl font-extrabold text-white">User Activity Overview</h1>
+            <p class="max-w-3xl text-slate-400 mt-4">Review recent account behavior, last login events, and support ticket activity for all users.</p>
+        </header>
+
+        <section class="glass-panel rounded-[2rem] p-8 shadow-2xl shadow-slate-950/40">
+            <div class="flex items-center justify-between gap-4 mb-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-white">Activity Log Table</h2>
+                    <p class="text-slate-400 mt-2">This page pulls user metadata from the Firestore users collection.</p>
+                </div>
+                <button id="refreshLogs" class="rounded-3xl border border-slate-700 bg-slate-900/80 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800 transition">Refresh</button>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-left text-sm text-slate-300">
+                    <thead class="border-b border-slate-700 text-slate-400">
+                        <tr>
+                            <th class="px-5 py-4">User</th>
+                            <th class="px-5 py-4">Last Login</th>
+                            <th class="px-5 py-4">Last Purchase</th>
+                            <th class="px-5 py-4">Support Ticket</th>
+                            <th class="px-5 py-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsBody" class="divide-y divide-slate-700">
+                        <tr><td colspan="5" class="px-6 py-12 text-center text-slate-400">Loading activity logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4',
+            authDomain: 'ctc-capital.firebaseapp.com',
+            projectId: 'ctc-capital',
+            storageBucket: 'ctc-capital.firebasestorage.app',
+            messagingSenderId: '563837502113',
+            appId: '1:563837502113:web:d84ae0e9d07c997ebb26e0',
+            measurementId: 'G-7L643VX04V'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const logsBody = document.getElementById('logsBody');
+        const refreshLogs = document.getElementById('refreshLogs');
+
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            const date = value.toDate ? value.toDate() : new Date(value);
+            return date.toLocaleDateString();
+        }
+
+        async function loadLogs() {
+            try {
+                const snapshot = await getDocs(collection(db, 'users'));
+                if (snapshot.empty) {
+                    logsBody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-slate-400">No user logs found.</td></tr>';
+                    return;
+                }
+
+                logsBody.innerHTML = '';
+                snapshot.forEach(docSnap => {
+                    const user = docSnap.data();
+                    logsBody.innerHTML += `
+                        <tr class="bg-slate-950/80 hover:bg-slate-900">
+                            <td class="px-5 py-4 text-white">${user.fullName || user.email || 'User'}</td>
+                            <td class="px-5 py-4 text-slate-300">${formatDate(user.lastLoginAt)}</td>
+                            <td class="px-5 py-4 text-slate-300">${formatDate(user.lastPurchaseAt)}</td>
+                            <td class="px-5 py-4 text-slate-300">${user.lastSupportTicket || 'None'}</td>
+                            <td class="px-5 py-4 text-slate-300">${user.accountStatus === 'restricted' ? 'Restricted' : 'Active'}</td>
+                        </tr>
+                    `;
+                });
+            } catch (error) {
+                console.error('Error loading logs:', error);
+                logsBody.innerHTML = '<tr><td colspan="5" class="px-6 py-12 text-center text-red-400">Unable to load logs.</td></tr>';
+            }
+        }
+
+        refreshLogs.addEventListener('click', loadLogs);
+
+        onAuthStateChanged(auth, (user) => {
+            // Removed forced redirect to login/index. Page will not redirect if not authenticated.
+            loadLogs();
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>

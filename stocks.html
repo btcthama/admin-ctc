@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Admin Dashboard | CTC Capital Elite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .admin-gradient, .sidebar, .content-panel, .stat-card, .stock-row, .edit-field, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .admin-gradient { background: linear-gradient(135deg, #1e40af 0%, #0c4a6e 100%); }
+        .sidebar { background: #1a2844; border-right: 1px solid rgba(148,163,184,0.12); }
+        .sidebar-item { transition: all 0.25s ease; }
+        .sidebar-item:hover { background: rgba(30, 64, 175, 0.2); }
+        .sidebar-item.active { background: linear-gradient(90deg, rgba(30, 64, 175, 0.4) 0%, transparent 100%); border-left: 3px solid #3b82f6; }
+        .content-panel { background: #1e293b; border: 1px solid rgba(148,163,184,0.12); }
+        .stat-card { background: #334155; transition: transform 0.2s, box-shadow 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
+        .stock-row { background: #334155; transition: all 0.2s ease; border: 1px solid rgba(148,163,184,0.1); }
+        .stock-row:hover { background-color: #475569; }
+        .edit-field { background: #0f172a; border: 1px solid #475569; color: #e2e8f0; transition: border-color 0.2s; }
+        .edit-field:focus { border-color: #3b82f6; outline: none; }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .tab-btn { border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { border-bottom-color: #3b82f6; color: #3b82f6; }
+        .sidebar-item, .tab-btn, .btn-primary, .btn-success, .btn-danger, button {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: rgba(255,255,255,0.15);
+        }
+        .sidebar-item, a, button {
+            user-select: none;
+        }
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(148,163,184,0.12);
+            }
+            main {
+                margin-left: 0 !important;
+            }
+            .sidebar-item {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+        @media (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+            .sidebar {
+                padding-bottom: 1rem;
+            }
+            header {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .tab-btn {
+                font-size: 0.95rem;
+            }
+            .content-panel {
+                padding: 1.25rem;
+            }
+            .stat-card,
+            .sidebar-item,
+            .btn-primary,
+            .btn-success,
+            .btn-danger,
+            main {
+                width: 100%;
+            }
+        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-900 flex">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar fixed left-0 top-0 h-screen w-64 overflow-y-auto pt-8 shadow-2xl shadow-black/50">
+        <div class="px-6 mb-12">
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent">Admin Panel</h1>
+            <p class="text-xs text-slate-400 mt-1">Market Control Center</p>
+        </div>
+
+        <nav class="space-y-1 px-4">
+            <div class="tab-btn sidebar-item active px-4 py-3 rounded-lg font-semibold cursor-pointer flex items-center gap-3" data-tab="dashboard">
+                <i data-lucide="gauge" class="w-5 h-5"></i>
+                Dashboard
+            </div>
+            <div class="tab-btn sidebar-item px-4 py-3 rounded-lg font-semibold cursor-pointer flex items-center gap-3" data-tab="trades">
+                <i data-lucide="zap" class="w-5 h-5"></i>
+                Pending Trades
+            </div>
+            <div class="tab-btn sidebar-item px-4 py-3 rounded-lg font-semibold cursor-pointer flex items-center gap-3" data-tab="stocks">
+                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                Stock Management
+            </div>
+            <div class="tab-btn sidebar-item px-4 py-3 rounded-lg font-semibold cursor-pointer flex items-center gap-3" data-tab="pages">
+                <i data-lucide="link-2" class="w-5 h-5"></i>
+                Stock Pages
+            </div>
+            <div class="tab-btn sidebar-item px-4 py-3 rounded-lg font-semibold cursor-pointer flex items-center gap-3" data-tab="market">
+                <i data-lucide="globe" class="w-5 h-5"></i>
+                Market Terminal
+            </div>
+            <div class="tab-btn sidebar-item px-4 py-3 rounded-lg font-semibold cursor-pointer flex items-center gap-3" data-tab="analytics">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                Analytics
+            </div>
+        </nav>
+
+        <div class="px-4 mt-12 pt-8 border-t border-slate-700 space-y-3">
+            <a href="../pages/market.html" target="_blank" class="sidebar-item px-4 py-3 rounded-lg font-semibold flex items-center gap-3 hover:bg-slate-700/30">
+                <i data-lucide="external-link" class="w-5 h-5 text-blue-400"></i>
+                View Live Market
+            </a>
+            <button id="logoutBtn" class="w-full text-left sidebar-item px-4 py-3 rounded-lg font-semibold flex items-center gap-3 hover:bg-red-500/10 text-red-400">
+                <i data-lucide="log-out" class="w-5 h-5"></i>
+                Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 bg-slate-900 md:ml-64">
+        <!-- Header -->
+        <header class="admin-gradient shadow-lg shadow-black/50 sticky top-0 z-40 px-8 py-6 border-b border-slate-700">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-3xl font-bold text-white" id="pageTitle">Dashboard</h2>
+                    <p class="text-blue-200/70 mt-1" id="pageDesc">Market and stock management overview</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="font-semibold text-white" id="adminName">Admin</p>
+                        <p class="text-xs text-blue-200/70">Market Manager</p>
+                    </div>
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold">A</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Wrapper -->
+        <div class="p-8 pb-12">
+            <!-- Dashboard Tab -->
+            <section id="dashboard-tab" class="tab-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                    <div class="stat-card rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Total Stocks</p>
+                                <p class="text-3xl font-bold text-white mt-2" id="totalStocks">0</p>
+                            </div>
+                            <i data-lucide="trending-up" class="w-12 h-12 text-blue-500/30"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Market Change</p>
+                                <p class="text-3xl font-bold mt-2" id="avgChange">0%</p>
+                            </div>
+                            <i data-lucide="bar-chart-2" class="w-12 h-12 text-green-500/30"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Stocks Up</p>
+                                <p class="text-3xl font-bold text-emerald-400 mt-2" id="stocksUp">0</p>
+                            </div>
+                            <i data-lucide="arrow-up" class="w-12 h-12 text-emerald-500/30"></i>
+                        </div>
+                    </div>
+                    <div class="stat-card rounded-2xl p-6 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-slate-400 text-sm font-medium">Stocks Down</p>
+                                <p class="text-3xl font-bold text-red-400 mt-2" id="stocksDown">0</p>
+                            </div>
+                            <i data-lucide="arrow-down" class="w-12 h-12 text-red-500/30"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-panel rounded-2xl p-8 shadow-xl">
+                    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-3">
+                        <i data-lucide="activity" class="w-5 h-5 text-blue-400"></i>
+                        Quick Actions
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button class="btn-primary px-6 py-4 rounded-xl font-semibold flex items-center justify-center gap-2 group" id="syncDataBtn">
+                            <i data-lucide="refresh-cw" class="w-4 h-4 group-hover:rotate-180 transition-transform"></i>
+                            Sync Market Data
+                        </button>
+                        <button class="btn-success px-6 py-4 rounded-xl font-semibold flex items-center justify-center gap-2" id="refreshAllBtn">
+                            <i data-lucide="reload" class="w-4 h-4"></i>
+                            Refresh All Stocks
+                        </button>
+                        <button class="btn-danger px-6 py-4 rounded-xl font-semibold flex items-center justify-center gap-2" id="resetDataBtn">
+                            <i data-lucide="hard-drive" class="w-4 h-4"></i>
+                            Reset to Defaults
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Pending Trades Tab -->
+            <section id="trades-tab" class="tab-content hidden">
+                <div class="content-panel rounded-2xl p-8 shadow-xl">
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-bold text-white flex items-center gap-3 mb-2">
+                            <i data-lucide="zap" class="w-6 h-6 text-yellow-400"></i>
+                            Pending User Trades
+                        </h3>
+                        <p class="text-slate-400">Review and approve/reject buy orders from users. Approvals will auto-debit their balance.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-8">
+                        <div class="stat-card rounded-2xl p-5">
+                            <p class="text-slate-400 text-sm font-medium">Pending Orders</p>
+                            <p class="text-3xl font-bold text-white mt-2" id="pendingCount">0</p>
+                        </div>
+                        <div class="stat-card rounded-2xl p-5">
+                            <p class="text-slate-400 text-sm font-medium">Total Value</p>
+                            <p class="text-2xl font-bold text-yellow-400 mt-2" id="totalPendingValue">$0.00</p>
+                        </div>
+                        <div class="stat-card rounded-2xl p-5">
+                            <p class="text-slate-400 text-sm font-medium">Approved Today</p>
+                            <p class="text-2xl font-bold text-emerald-400 mt-2" id="approvedToday">0</p>
+                        </div>
+                        <div class="stat-card rounded-2xl p-5">
+                            <p class="text-slate-400 text-sm font-medium">Rejected Today</p>
+                            <p class="text-2xl font-bold text-red-400 mt-2" id="rejectedToday">0</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4" id="tradesList"></div>
+                </div>
+            </section>
+
+            <!-- Stock Management Tab -->
+            <section id="stocks-tab" class="tab-content hidden">
+                <div class="content-panel rounded-2xl p-8 shadow-xl">
+                    <div class="flex flex-col lg:flex-row gap-6 mb-8 justify-between items-start lg:items-center">
+                        <div>
+                            <h3 class="text-2xl font-bold text-white flex items-center gap-3">
+                                <i data-lucide="table" class="w-6 h-6 text-blue-400"></i>
+                                Stock Editor
+                            </h3>
+                            <p class="text-slate-400 mt-1">Edit prices, changes, and market volumes in real-time</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button class="btn-success px-6 py-3 rounded-xl font-semibold flex items-center gap-2" id="saveAllBtn">
+                                <i data-lucide="save" class="w-4 h-4"></i>
+                                Save Changes
+                            </button>
+                            <button class="px-6 py-3 rounded-xl font-semibold bg-slate-700 hover:bg-slate-600 flex items-center gap-2" id="resetBtn">
+                                <i data-lucide="undo-2" class="w-4 h-4"></i>
+                                Undo
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <input type="text" id="searchStocks" placeholder="🔍 Search by symbol or name..." class="w-full px-5 py-3 rounded-xl edit-field placeholder-slate-500">
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-700">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-slate-800/50 border-b border-slate-700">
+                                    <th class="px-6 py-4 text-left font-semibold text-slate-300">Symbol</th>
+                                    <th class="px-6 py-4 text-left font-semibold text-slate-300">Company</th>
+                                    <th class="px-6 py-4 text-right font-semibold text-slate-300">Price</th>
+                                    <th class="px-6 py-4 text-right font-semibold text-slate-300">Change %</th>
+                                    <th class="px-6 py-4 text-right font-semibold text-slate-300">Volume</th>
+                                    <th class="px-6 py-4 text-center font-semibold text-slate-300">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stocksTable" class="divide-y divide-slate-700"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stock Pages Tab -->
+            <section id="pages-tab" class="tab-content hidden">
+                <div class="content-panel rounded-2xl p-8 shadow-xl">
+                    <h3 class="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                        <i data-lucide="layout" class="w-6 h-6 text-blue-400"></i>
+                        Stock Detail Pages
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="stockPageLinks"></div>
+                </div>
+            </section>
+
+            <!-- Market Terminal Tab -->
+            <section id="market-tab" class="tab-content hidden">
+                <div class="content-panel rounded-2xl p-8 shadow-xl">
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <i data-lucide="globe" class="w-6 h-6 text-blue-400"></i>
+                        Marketplace Terminal
+                    </h3>
+                    <p class="text-slate-300 mb-6">Access the live marketplace for real-time trading, orders, and market data.</p>
+                    <iframe src="../pages/market.html" class="w-full h-96 rounded-xl border border-slate-700"></iframe>
+                </div>
+            </section>
+
+            <!-- Analytics Tab -->
+            <section id="analytics-tab" class="tab-content hidden">
+                <div class="content-panel rounded-2xl p-8 shadow-xl">
+                    <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                        <i data-lucide="pie-chart" class="w-6 h-6 text-blue-400"></i>
+                        Market Analytics
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <p class="text-slate-300 font-semibold">Top Gainers</p>
+                            <div id="topGainers" class="space-y-2"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <p class="text-slate-300 font-semibold">Top Losers</p>
+                            <div id="topLosers" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, getDocs, onSnapshot, updateDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4",
+            authDomain: "ctc-capital.firebaseapp.com",
+            projectId: "ctc-capital",
+            storageBucket: "ctc-capital.firebasestorage.app",
+            messagingSenderId: "563837502113",
+            appId: "1:563837502113:web:d84ae0e9d07c997ebb26e0",
+            measurementId: "G-7L643VX04V"
+        };
+
+        const firebaseApp = initializeApp(firebaseConfig);
+        const auth = getAuth(firebaseApp);
+        const db = getFirestore(firebaseApp);
+
+        const STOCK_LIST = {
+            AAPL: { symbol: 'AAPL', name: 'Apple Inc.', price: 175.43, change: 2.34, volume: '45.2M' },
+            TSLA: { symbol: 'TSLA', name: 'Tesla Inc.', price: 248.50, change: -1.23, volume: '32.1M' },
+            GOOGL: { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 142.87, change: 0.89, volume: '28.7M' },
+            MSFT: { symbol: 'MSFT', name: 'Microsoft Corp.', price: 378.85, change: 1.67, volume: '22.3M' },
+            AMZN: { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 155.89, change: 3.21, volume: '38.9M' },
+            BTC: { symbol: 'BTC', name: 'Bitcoin', price: 43250.00, change: 5.67, volume: '1.2B' },
+            ETH: { symbol: 'ETH', name: 'Ethereum', price: 2650.00, change: 2.89, volume: '850M' },
+            OIL: { symbol: 'OIL', name: 'Oil & Gas Index', price: 78.45, change: -0.34, volume: '156M' },
+            TECH: { symbol: 'TECH', name: 'Tech Index', price: 4250.67, change: 1.45, volume: '2.1B' }
+        };
+
+        const stockPages = [
+            { symbol: 'AAPL', page: 'stocks/apple.html' },
+            { symbol: 'AMZN', page: 'stocks/amazon.html' },
+            { symbol: 'GOOGL', page: 'stocks/google.html' },
+            { symbol: 'MSFT', page: 'stocks/microsoft.html' },
+            { symbol: 'TSLA', page: 'stocks/tesla.html' },
+            { symbol: 'BTC', page: 'stocks/bill-gates.html' },
+            { symbol: 'ETH', page: 'stocks/tech-index.html' }
+        ];
+
+        let allStocks = [];
+        let editedStocks = new Map();
+        let currentUser = null;
+
+        // Tab System
+        document.querySelectorAll('[data-tab]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const tabName = e.currentTarget.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
+        function switchTab(tabName) {
+            // Update sidebar active state
+            document.querySelectorAll('[data-tab]').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.tab === tabName) btn.classList.add('active');
+            });
+
+            // Update content panels
+            document.querySelectorAll('.tab-content').forEach(panel => panel.classList.add('hidden'));
+            const activePanel = document.getElementById(`${tabName}-tab`);
+            if (activePanel) activePanel.classList.remove('hidden');
+
+            // Update header
+            const titles = {
+                dashboard: { title: 'Dashboard', desc: 'Market overview and quick actions' },
+                trades: { title: 'Pending Trades', desc: 'Review and approve buy orders from users' },
+                stocks: { title: 'Stock Management', desc: 'Edit prices, changes, and market volumes' },
+                pages: { title: 'Stock Pages', desc: 'Access individual stock detail pages' },
+                market: { title: 'Market Terminal', desc: 'Live marketplace access' },
+                analytics: { title: 'Analytics', desc: 'Market trends and performance metrics' }
+            };
+            if (titles[tabName]) {
+                document.getElementById('pageTitle').textContent = titles[tabName].title;
+                document.getElementById('pageDesc').textContent = titles[tabName].desc;
+            }
+
+            // Load data for trades tab
+            if (tabName === 'trades') {
+                await loadPendingTrades();
+            }
+        }
+
+        async function loadStocks() {
+            try {
+                const snapshot = await getDocs(collection(db, 'stocks'));
+                allStocks = [];
+                snapshot.forEach(doc => {
+                    allStocks.push(doc.data());
+                });
+                
+                if (allStocks.length === 0) {
+                    allStocks = Object.values(STOCK_LIST);
+                }
+
+                renderStocks();
+                updateMarketStats();
+                renderAnalytics();
+            } catch (error) {
+                console.error('Error loading stocks:', error);
+                allStocks = Object.values(STOCK_LIST);
+                renderStocks();
+            }
+        }
+
+        function renderStocks() {
+            const table = document.getElementById('stocksTable');
+            table.innerHTML = allStocks.map(stock => {
+                const edited = editedStocks.get(stock.symbol) || stock;
+                const changeClass = edited.change >= 0 ? 'text-emerald-400' : 'text-red-400';
+                return `
+                    <tr class="stock-row">
+                        <td class="px-6 py-4 font-bold text-blue-400">${stock.symbol}</td>
+                        <td class="px-6 py-4 text-slate-300">${stock.name}</td>
+                        <td class="px-6 py-4 text-right">
+                            <input type="number" step="0.01" value="${edited.price}" class="edit-field w-24 px-2 py-2 rounded text-right" data-symbol="${stock.symbol}" data-field="price">
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <input type="number" step="0.01" value="${edited.change}" class="edit-field w-20 px-2 py-2 rounded text-right ${changeClass}" data-symbol="${stock.symbol}" data-field="change">
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <input type="text" value="${edited.volume}" class="edit-field w-20 px-2 py-2 rounded text-right" data-symbol="${stock.symbol}" data-field="volume">
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <a href="../pages/stocks/${stock.symbol.toLowerCase()}.html" target="_blank" class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-500/20 text-blue-400 hover:bg-blue-500/40 transition">
+                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.querySelectorAll('.edit-field').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const symbol = e.target.dataset.symbol;
+                    const field = e.target.dataset.field;
+                    const stock = editedStocks.get(symbol) || { ...allStocks.find(s => s.symbol === symbol) };
+                    stock[field] = field === 'price' || field === 'change' ? parseFloat(e.target.value) : e.target.value;
+                    editedStocks.set(symbol, stock);
+                });
+            });
+
+            lucide.createIcons();
+        }
+
+        function updateMarketStats() {
+            const stocks = editedStocks.size > 0 ? Array.from(editedStocks.values()) : allStocks;
+            const totalStocks = stocks.length;
+            const avgChange = totalStocks > 0 ? (stocks.reduce((sum, s) => sum + s.change, 0) / totalStocks).toFixed(2) : 0;
+            const stocksUp = stocks.filter(s => s.change > 0).length;
+            const stocksDown = stocks.filter(s => s.change < 0).length;
+
+            document.getElementById('totalStocks').textContent = totalStocks;
+            document.getElementById('avgChange').textContent = `${avgChange > 0 ? '+' : ''}${avgChange}%`;
+            document.getElementById('stocksUp').textContent = stocksUp;
+            document.getElementById('stocksDown').textContent = stocksDown;
+        }
+
+        function renderAnalytics() {
+            const stocks = editedStocks.size > 0 ? Array.from(editedStocks.values()) : allStocks;
+            const sorted = [...stocks].sort((a, b) => b.change - a.change);
+            
+            const gainers = sorted.slice(0, 5);
+            const losers = sorted.slice(-5).reverse();
+
+            document.getElementById('topGainers').innerHTML = gainers.map(s => `
+                <div class="bg-slate-800 rounded-lg p-4 flex justify-between items-center">
+                    <span class="font-semibold text-white">${s.symbol}</span>
+                    <span class="text-emerald-400 font-bold">+${s.change.toFixed(2)}%</span>
+                </div>
+            `).join('');
+
+            document.getElementById('topLosers').innerHTML = losers.map(s => `
+                <div class="bg-slate-800 rounded-lg p-4 flex justify-between items-center">
+                    <span class="font-semibold text-white">${s.symbol}</span>
+                    <span class="text-red-400 font-bold">${s.change.toFixed(2)}%</span>
+                </div>
+            `).join('');
+        }
+
+        async function saveAllChanges() {
+            if (editedStocks.size === 0) {
+                alert('✓ No changes to save.');
+                return;
+            }
+
+            try {
+                for (const [symbol, stock] of editedStocks) {
+                    await updateDoc(doc(db, 'stocks', symbol), {
+                        price: stock.price,
+                        change: stock.change,
+                        volume: stock.volume,
+                        updatedAt: serverTimestamp()
+                    });
+                }
+                alert('✅ All changes saved successfully!');
+                editedStocks.clear();
+                await loadStocks();
+            } catch (error) {
+                console.error('Error saving changes:', error);
+                alert('❌ Error: ' + error.message);
+            }
+        }
+
+        function renderStockPageLinks() {
+            const container = document.getElementById('stockPageLinks');
+            container.innerHTML = stockPages.map(({ symbol, page }) => `
+                <a href="../pages/${page}" target="_blank" class="group bg-slate-800 hover:bg-slate-700 rounded-xl p-5 border border-slate-700 hover:border-blue-500 transition flex items-center justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-widest text-slate-400">Stock</p>
+                        <p class="mt-2 font-bold text-white">${symbol}</p>
+                    </div>
+                    <i data-lucide="arrow-right" class="w-5 h-5 text-slate-400 group-hover:text-blue-400"></i>
+                </a>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // ===== PENDING TRADES MANAGEMENT =====
+
+        let pendingTrades = [];
+        let tradesUnsubscribe = null;
+
+        async function loadPendingTrades() {
+            return new Promise((resolve) => {
+                // Unsubscribe from previous listener if exists
+                if (tradesUnsubscribe) tradesUnsubscribe();
+
+                // Subscribe to all pending transactions
+                tradesUnsubscribe = onSnapshot(
+                    query(collection(db, 'transactions'), where('status', '==', 'pending')),
+                    (snapshot) => {
+                        pendingTrades = [];
+                        snapshot.forEach((doc) => {
+                            pendingTrades.push({ id: doc.id, ...doc.data() });
+                        });
+
+                        // Sort by creation date (newest first)
+                        pendingTrades.sort((a, b) => b.createdAt - a.createdAt);
+
+                        renderPendingTrades();
+                        updateTradeStats();
+                        resolve();
+                    },
+                    (error) => {
+                        console.error('Error loading pending trades:', error);
+                        resolve();
+                    }
+                );
+            });
+        }
+
+        function renderPendingTrades() {
+            const container = document.getElementById('tradesList');
+
+            if (pendingTrades.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <i data-lucide="inbox" class="w-16 h-16 text-slate-500 mx-auto mb-4"></i>
+                        <p class="text-slate-400 font-semibold">No pending trades</p>
+                        <p class="text-slate-500 text-sm mt-1">All user orders have been processed</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = pendingTrades.map((trade) => {
+                const totalCost = (trade.totalCost || 0).toFixed(2);
+                const symbol = trade.symbol || 'UNKNOWN';
+                const qty = trade.quantity || 0;
+                const price = (trade.buyPrice || 0).toFixed(2);
+
+                return `
+                    <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-6 hover:border-yellow-500/50 transition">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+                            <div>
+                                <p class="text-slate-400 text-xs uppercase tracking-wider">Stock</p>
+                                <p class="text-2xl font-bold text-blue-400 mt-2">${symbol}</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs uppercase tracking-wider">Quantity</p>
+                                <p class="text-2xl font-bold text-white mt-2">${qty} shares</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs uppercase tracking-wider">Price/Share</p>
+                                <p class="text-xl font-bold text-emerald-400 mt-2">$${price}</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs uppercase tracking-wider">Total Cost</p>
+                                <p class="text-2xl font-bold text-yellow-400 mt-2">$${totalCost}</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-400 text-xs uppercase tracking-wider">Order Type</p>
+                                <p class="text-lg font-bold text-slate-300 mt-2">${trade.orderType || 'market'}</p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-slate-700 pt-4 mb-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                <div>
+                                    <p class="text-slate-400">User ID</p>
+                                    <p class="text-xs text-slate-300 mt-1 break-all">${trade.userId?.substring(0, 12)}...</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400">Order ID</p>
+                                    <p class="text-xs text-slate-300 mt-1 break-all">${trade.id?.substring(0, 12)}...</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400">Requested</p>
+                                    <p class="text-xs text-slate-300 mt-1">${new Date(trade.createdAt?.toDate?.() || Date.now()).toLocaleString()}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-400">Status</p>
+                                    <p class="text-xs font-semibold text-yellow-400 mt-1">⏳ PENDING</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button class="btn-success flex-1 px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2" onclick="approveTrade('${trade.id}', '${trade.userId}', '${symbol}', ${qty}, ${price})">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                Approve & Debit
+                            </button>
+                            <button class="btn-danger flex-1 px-4 py-3 rounded-lg font-semibold flex items-center justify-center gap-2" onclick="rejectTrade('${trade.id}', '${trade.userId}', '${symbol}')">
+                                <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function updateTradeStats() {
+            const totalValue = pendingTrades.reduce((sum, t) => sum + (t.totalCost || 0), 0);
+            const today = new Date().toDateString();
+            
+            document.getElementById('pendingCount').textContent = pendingTrades.length;
+            document.getElementById('totalPendingValue').textContent = `$${totalValue.toFixed(2)}`;
+        }
+
+        window.approveTrade = async (tradeId, userId, symbol, qty, price) => {
+            if (!confirm(`Approve trade: ${qty} shares of ${symbol} for $${(qty * price).toFixed(2)}?`)) return;
+
+            try {
+                // Update transaction status to "success"
+                await updateDoc(doc(db, 'transactions', tradeId), {
+                    status: 'success',
+                    approvedAt: serverTimestamp()
+                });
+
+                alert(`✅ Trade approved! Debiting $${(qty * price).toFixed(2)} from user account.`);
+                await loadPendingTrades();
+            } catch (error) {
+                console.error('Error approving trade:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        };
+
+        window.rejectTrade = async (tradeId, userId, symbol) => {
+            if (!confirm(`Reject this trade for ${symbol}?`)) return;
+
+            try {
+                // Update transaction status to "rejected"
+                await updateDoc(doc(db, 'transactions', tradeId), {
+                    status: 'rejected',
+                    rejectedAt: serverTimestamp()
+                });
+
+                alert(`✅ Trade rejected. User will be notified.`);
+                await loadPendingTrades();
+            } catch (error) {
+                console.error('Error rejecting trade:', error);
+                alert(`❌ Error: ${error.message}`);
+            }
+        };
+
+        // ===== EVENT LISTENERS =====
+        document.getElementById('saveAllBtn').addEventListener('click', saveAllChanges);
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            editedStocks.clear();
+            loadStocks();
+        });
+        document.getElementById('syncDataBtn').addEventListener('click', () => {
+            alert('✓ Market data synced!');
+            loadStocks();
+        });
+        document.getElementById('refreshAllBtn').addEventListener('click', loadStocks);
+        document.getElementById('resetDataBtn').addEventListener('click', () => {
+            if (confirm('⚠️ This will reset all stocks to default values. Continue?')) {
+                alert('✓ Data reset to defaults');
+                editedStocks.clear();
+                loadStocks();
+            }
+        });
+
+        document.getElementById('searchStocks').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            document.querySelectorAll('.stock-row').forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (confirm('Logout from admin panel?')) {
+                await signOut(auth);
+                window.location.replace('../public/index.html');
+            }
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.replace('../public/index.html');
+                return;
+            }
+            currentUser = user;
+            document.getElementById('adminName').textContent = user.email?.split('@')[0] || 'Admin';
+            loadStocks();
+            renderStockPageLinks();
+            loadPendingTrades();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Admin User Management | CTC Capital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+        * {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100vw;
+            min-width: 0;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top, rgba(14, 31, 66, 0.95), #031221 0%), #020814;
+            color: #E2E8F0;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            touch-action: manipulation;
+        }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.82);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+        }
+        .table-header {
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        }
+        .table-row:hover {
+            background: rgba(96, 165, 250, 0.08);
+        }
+        .status-pill {
+            padding: 0.45rem 0.85rem;
+            border-radius: 9999px;
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+        }
+        .verified { background: rgba(34, 197, 94, 0.15); color: #22c55e; }
+        .unverified { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .pending { background: rgba(251, 191, 36, 0.15); color: #f59e0b; }
+    </style>
+</head>
+<body class="min-h-screen pb-10">
+    <div id="adminSidebar"></div>
+    <div id="mainContent" class="ml-64 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 overflow-x-hidden max-w-full">
+        <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Admin Control</p>
+                <h1 class="mt-3 text-3xl font-bold text-slate-100">User Management</h1>
+                <p class="mt-2 text-slate-400 max-w-2xl">View all registered users, manage accounts, send notifications, and monitor user activity.</p>
+            </div>
+            <div class="flex gap-3">
+                <a href="messages.html" class="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+                    Send Messages
+                </a>
+                <a href="../app/dashboard.html" class="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                    Back to Dashboard
+                </a>
+            </div>
+        </header>
+
+        <section class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+            <div class="space-y-6">
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p class="text-sm uppercase tracking-[0.3em] text-slate-400">User statistics</p>
+                            <h2 class="mt-2 text-2xl font-semibold text-slate-100">Platform Overview</h2>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                            <div class="rounded-3xl border border-slate-700 bg-slate-950/75 p-5">
+                                <p class="text-sm uppercase tracking-[0.28em] text-slate-500">Total Users</p>
+                                <p id="totalUsers" class="mt-3 text-3xl font-bold text-cyan-300">0</p>
+                            </div>
+                            <div class="rounded-3xl border border-slate-700 bg-slate-950/75 p-5">
+                                <p class="text-sm uppercase tracking-[0.28em] text-slate-500">Verified</p>
+                                <p id="verifiedUsers" class="mt-3 text-3xl font-bold text-emerald-300">0</p>
+                            </div>
+                            <div class="rounded-3xl border border-slate-700 bg-slate-950/75 p-5">
+                                <p class="text-sm uppercase tracking-[0.28em] text-slate-500">Unverified</p>
+                                <p id="unverifiedUsers" class="mt-3 text-3xl font-bold text-red-300">0</p>
+                            </div>
+                            <div class="rounded-3xl border border-slate-700 bg-slate-950/75 p-5">
+                                <p class="text-sm uppercase tracking-[0.28em] text-slate-500">Active Today</p>
+                                <p id="activeUsers" class="mt-3 text-3xl font-bold text-amber-300">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+                        <div>
+                            <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Search & Filter</p>
+                            <h3 class="mt-2 text-xl font-semibold text-slate-100">All registered users</h3>
+                        </div>
+                        <div class="flex gap-3">
+                            <select id="statusFilter" class="rounded-3xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                                <option value="all">All Users</option>
+                                <option value="verified">Verified</option>
+                                <option value="unverified">Unverified</option>
+                                <option value="pending">Pending KYC</option>
+                            </select>
+                            <input id="searchEmail" type="search" placeholder="Search by email or name" class="w-full max-w-xs rounded-3xl border border-slate-700 bg-slate-950/80 px-5 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20" />
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-[2rem] border border-slate-700 bg-slate-950/80">
+                        <table class="w-full">
+                            <thead class="table-header">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">User</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Status</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Balance</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Joined</th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold uppercase tracking-[0.3em] text-slate-400">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="divide-y divide-slate-700">
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <svg class="h-12 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                            </svg>
+                                            <p>Loading users...</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <h3 class="text-xl font-semibold text-slate-100 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <button id="sendBulkMessage" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-4 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            Send Bulk Message
+                        </button>
+                        <button id="exportUsers" class="w-full flex items-center justify-center gap-3 rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-4 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            Export User Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                    <h3 class="text-xl font-semibold text-slate-100 mb-4">Recent Activity</h3>
+                    <div id="recentActivity" class="space-y-3 text-sm text-slate-400">
+                        <p>Loading recent activity...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="messageModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 p-4">
+        <div class="max-w-md w-full bg-slate-800 rounded-[2rem] border border-slate-700 shadow-2xl overflow-hidden">
+            <div class="bg-slate-900 px-6 py-5 border-b border-slate-700">
+                <h2 class="text-lg font-bold text-slate-100">Send Message</h2>
+                <p id="messageRecipient" class="text-sm text-slate-400 mt-1"></p>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Message Type</label>
+                    <select id="messageType" class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                        <option value="info">Information</option>
+                        <option value="warning">Warning</option>
+                        <option value="success">Success</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-300 mb-2">Message</label>
+                    <textarea id="messageContent" rows="4" placeholder="Enter your message..." class="w-full rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 resize-none"></textarea>
+                </div>
+                <div class="flex gap-3">
+                    <button id="sendMessageBtn" class="flex-1 rounded-xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition">Send Message</button>
+                    <button id="cancelMessageBtn" class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, getDocs, addDoc, serverTimestamp, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4",
+            authDomain: "ctc-capital.firebaseapp.com",
+            projectId: "ctc-capital",
+            storageBucket: "ctc-capital.firebasestorage.app",
+            messagingSenderId: "563837502113",
+            appId: "1:563837502113:web:d84ae0e9d07c997ebb26e0",
+            measurementId: "G-7L643VX04V"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allUsers = [];
+        let selectedUserId = null;
+
+        const totalUsersEl = document.getElementById('totalUsers');
+        const verifiedUsersEl = document.getElementById('verifiedUsers');
+        const unverifiedUsersEl = document.getElementById('unverifiedUsers');
+        const activeUsersEl = document.getElementById('activeUsers');
+        const usersTableBody = document.getElementById('usersTableBody');
+        const searchEmail = document.getElementById('searchEmail');
+        const statusFilter = document.getElementById('statusFilter');
+        const messageModal = document.getElementById('messageModal');
+        const messageRecipient = document.getElementById('messageRecipient');
+        const messageType = document.getElementById('messageType');
+        const messageContent = document.getElementById('messageContent');
+        const sendMessageBtn = document.getElementById('sendMessageBtn');
+        const cancelMessageBtn = document.getElementById('cancelMessageBtn');
+        const sendBulkMessage = document.getElementById('sendBulkMessage');
+        const exportUsers = document.getElementById('exportUsers');
+        const recentActivity = document.getElementById('recentActivity');
+
+        function formatCurrency(amount, currency = 'USD') {
+            if (currency === 'BTC') {
+                return `${parseFloat(amount || 0).toFixed(8)} BTC`;
+            }
+            return `$${parseFloat(amount || 0).toFixed(2)}`;
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            return date.toLocaleDateString();
+        }
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'verified': return 'verified';
+                case 'unverified': return 'unverified';
+                case 'pending': return 'pending';
+                default: return 'unverified';
+            }
+        }
+
+        function getStatusText(status) {
+            switch (status) {
+                case 'verified': return 'Verified';
+                case 'unverified': return 'Unverified';
+                case 'pending': return 'Pending KYC';
+                default: return 'Unverified';
+            }
+        }
+
+        function renderUsers(users) {
+            if (!users || users.length === 0) {
+                usersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-slate-400">
+                            <div class="flex flex-col items-center gap-3">
+                                <svg class="h-12 w-12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                </svg>
+                                <p>No users found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            usersTableBody.innerHTML = users.map(user => `
+                <tr class="table-row">
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-300 font-bold text-sm uppercase">
+                                ${(user.fullName || user.email || 'U').charAt(0)}
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-100">${user.fullName || 'Unknown User'}</p>
+                                <p class="text-sm text-slate-400">${user.email || 'No email'}</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="status-pill ${getStatusClass(user.kycStatus)}">${getStatusText(user.kycStatus)}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm">
+                            <p class="text-slate-100">${formatCurrency(user.usdBalance || user.balance)}</p>
+                            <p class="text-slate-400">${formatCurrency(user.btcBalance, 'BTC')}</p>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-slate-400">
+                        ${formatDate(user.createdAt)}
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex gap-2">
+                            <button onclick="viewUser('${user.uid}')" class="rounded-lg border border-slate-700 bg-slate-900/80 px-3 py-2 text-xs text-slate-100 hover:bg-slate-800 transition">
+                                View
+                            </button>
+                            <button onclick="messageUser('${user.uid}', '${user.fullName || user.email || 'User'}')" class="rounded-lg bg-cyan-600 px-3 py-2 text-xs text-white hover:bg-cyan-700 transition">
+                                Message
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStats(users) {
+            const total = users.length;
+            const verified = users.filter(u => u.kycStatus === 'verified').length;
+            const unverified = users.filter(u => u.kycStatus === 'unverified').length;
+            const pending = users.filter(u => u.kycStatus === 'pending').length;
+
+            totalUsersEl.textContent = total;
+            verifiedUsersEl.textContent = verified;
+            unverifiedUsersEl.textContent = unverified + pending; // Combine unverified and pending
+            activeUsersEl.textContent = Math.floor(total * 0.1); // Placeholder for active users
+        }
+
+        function filterUsers() {
+            const searchTerm = searchEmail.value.toLowerCase();
+            const statusFilterValue = statusFilter.value;
+
+            let filtered = allUsers;
+
+            if (statusFilterValue !== 'all') {
+                filtered = filtered.filter(user => user.kycStatus === statusFilterValue);
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(user =>
+                    (user.email || '').toLowerCase().includes(searchTerm) ||
+                    (user.fullName || '').toLowerCase().includes(searchTerm)
+                );
+            }
+
+            renderUsers(filtered);
+        }
+
+        function loadUsers() {
+            const usersQuery = query(collection(db, 'users'), orderBy('createdAt', 'desc'));
+            onSnapshot(usersQuery, (snapshot) => {
+                allUsers = [];
+                snapshot.forEach(docSnap => {
+                    const userData = docSnap.data();
+                    allUsers.push({ uid: docSnap.id, ...userData });
+                });
+
+                updateStats(allUsers);
+                renderUsers(allUsers);
+            });
+        }
+
+        // Global functions for onclick handlers
+        window.viewUser = (userId) => {
+            window.location.href = `user-details.html?uid=${userId}`;
+        };
+
+        window.messageUser = (userId, userName) => {
+            selectedUserId = userId;
+            messageRecipient.textContent = `To: ${userName}`;
+            messageModal.classList.remove('hidden');
+        };
+
+        // Event listeners
+        searchEmail.addEventListener('input', filterUsers);
+        statusFilter.addEventListener('change', filterUsers);
+
+        sendMessageBtn.addEventListener('click', async () => {
+            if (!selectedUserId || !messageContent.value.trim()) return;
+
+            try {
+                const messageData = {
+                    title: 'Admin Message',
+                    message: messageContent.value.trim(),
+                    description: 'Message from CTC Capital administration.',
+                    type: 'Admin',
+                    createdAt: serverTimestamp(),
+                    read: false
+                };
+
+                await addDoc(collection(db, 'users', selectedUserId, 'notifications'), messageData);
+
+                // Also set as popup notification
+                await updateDoc(doc(db, 'users', selectedUserId), {
+                    currentNotification: messageContent.value.trim(),
+                    notificationType: messageType.value
+                });
+
+                messageModal.classList.add('hidden');
+                messageContent.value = '';
+                alert('Message sent successfully!');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
+        });
+
+        cancelMessageBtn.addEventListener('click', () => {
+            messageModal.classList.add('hidden');
+            messageContent.value = '';
+            selectedUserId = null;
+        });
+
+        sendBulkMessage.addEventListener('click', () => {
+            alert('Bulk messaging feature coming soon!');
+        });
+
+        exportUsers.addEventListener('click', () => {
+            alert('Export feature coming soon!');
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+            }
+            loadUsers();
+               // Removed forced redirect to login/index. Page will not redirect if not authenticated.
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>

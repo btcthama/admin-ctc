@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Market Management | CTC Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); min-height: 100vh; color: white; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .glass-panel-sharp, .stat-card, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; }
+        .glass-panel-sharp { background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; }
+        .neon-glow { box-shadow: 0 0 20px rgba(0, 217, 255, 0.3), inset 0 0 20px rgba(0, 217, 255, 0.1); }
+        .stat-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 20px; transition: all 0.3s ease; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0, 217, 255, 0.2); }
+        .stock-tile { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 16px; margin: 8px; transition: all 0.3s ease; cursor: pointer; }
+        .stock-tile:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0, 217, 255, 0.3); }
+        .stock-up { border-left: 4px solid #10B981; }
+        .stock-down { border-left: 4px solid #EF4444; }
+        .pulse-dot { width: 8px; height: 8px; background: #10B981; border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 217, 255, 0.5); border-radius: 3px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0, 217, 255, 0.7); }
+        .gradient-text { background: linear-gradient(135deg, #00D9FF 0%, #00B4D8 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .market-ticker { position: fixed; bottom: 0; left: 0; right: 0; height: 60px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(20px); border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; overflow: hidden; z-index: 1000; }
+        .ticker-content { display: flex; animation: scroll 40s linear infinite; }
+        .ticker-item { white-space: nowrap; padding: 0 20px; color: #00D9FF; font-weight: 500; }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    </style>
+</head>
+<body class="custom-scrollbar">
+    <header class="sticky top-0 z-50 glass-panel-sharp p-6 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold gradient-text">Market Management</h1>
+                <p class="text-slate-400 mt-1">Admin Control Center - Live Market Oversight</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="pulse-dot"></div>
+                    <span class="text-sm text-slate-300">Market Live</span>
+                </div>
+                <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    Export Report
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24">
+        <div class="grid md:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card">
+                <p class="text-sm text-slate-400 mb-2">Total Market Value</p>
+                <p class="text-3xl font-bold text-white" id="totalMarketValue">$0.00</p>
+                <p class="text-xs text-slate-500 mt-2">All active investments</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm text-slate-400 mb-2">Total User Profit</p>
+                <p class="text-3xl font-bold text-green-400" id="totalUserProfit">$0.00</p>
+                <p class="text-xs text-slate-500 mt-2">Realized gains</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm text-slate-400 mb-2">Total Commission</p>
+                <p class="text-3xl font-bold text-blue-400" id="totalCommission">$0.00</p>
+                <p class="text-xs text-slate-500 mt-2">Platform revenue</p>
+            </div>
+            <div class="stat-card">
+                <p class="text-sm text-slate-400 mb-2">Active Investments</p>
+                <p class="text-3xl font-bold text-white" id="activeInvestments">0</p>
+                <p class="text-xs text-slate-500 mt-2">In progress</p>
+            </div>
+        </div>
+
+        <div class="mb-6 border-b border-slate-700 flex gap-4 overflow-x-auto">
+            <button onclick="switchTab('stocks')" class="tab-button active px-4 py-3 text-white border-b-2 border-blue-400 font-semibold whitespace-nowrap">
+                <i data-lucide="trending-up" class="w-4 h-4 inline mr-2"></i>
+                Live Stocks
+            </button>
+            <button onclick="switchTab('investments')" class="tab-button px-4 py-3 text-slate-400 hover:text-white font-semibold whitespace-nowrap">
+                <i data-lucide="briefcase" class="w-4 h-4 inline mr-2"></i>
+                User Investments
+            </button>
+            <button onclick="switchTab('pending-purchases')" class="tab-button px-4 py-3 text-slate-400 hover:text-white font-semibold whitespace-nowrap">
+                <i data-lucide="clock" class="w-4 h-4 inline mr-2"></i>
+                Pending Purchases <span id="pendingPurchaseCount" class="ml-2 px-2 py-1 bg-red-600 rounded text-xs">0</span>
+            </button>
+            <button onclick="switchTab('pending')" class="tab-button px-4 py-3 text-slate-400 hover:text-white font-semibold whitespace-nowrap">
+                <i data-lucide="loader" class="w-4 h-4 inline mr-2"></i>
+                Pending Orders
+            </button>
+            <button onclick="switchTab('commission')" class="tab-button px-4 py-3 text-slate-400 hover:text-white font-semibold whitespace-nowrap">
+                <i data-lucide="dollar-sign" class="w-4 h-4 inline mr-2"></i>
+                Commission Log
+            </button>
+            <button onclick="switchTab('market-rates')" class="tab-button px-4 py-3 text-slate-400 hover:text-white font-semibold whitespace-nowrap">
+                <i data-lucide="sliders" class="w-4 h-4 inline mr-2"></i>
+                Market Rates
+            </button>
+            <button onclick="switchTab('stock-trading')" class="tab-button px-4 py-3 text-slate-400 hover:text-white font-semibold whitespace-nowrap">
+                <i data-lucide="trending-up" class="w-4 h-4 inline mr-2"></i>
+                Stock Trading
+            </button>
+        </div>
+
+        <div id="stocks-tab" class="tab-content">
+            <div class="glass-panel p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold text-white">Live Stock Prices</h3>
+                    <div class="flex gap-3">
+                        <input type="text" id="stockSearch" placeholder="Search by symbol" class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400">
+                        <button onclick="openAddStockModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Add Stock
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="stocksGrid">
+                    </div>
+            </div>
+        </div>
+
+        <div id="investments-tab" class="tab-content hidden">
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-semibold text-white mb-6">All User Investments</h3>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left p-4 font-semibold text-slate-300">User</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Asset</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Amount</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Entry Price</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Current Value</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">P/L</th>
+                                <th class="text-center p-4 font-semibold text-slate-300">Status</th>
+                                <th class="text-center p-4 font-semibold text-slate-300">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="investmentsTable">
+                            <tr>
+                                <td colspan="8" class="text-center p-8 text-slate-400">Loading investments...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="pending-tab" class="tab-content hidden">
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-semibold text-white mb-6">Pending Investments</h3>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left p-4 font-semibold text-slate-300">User</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Asset</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Amount</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Reason</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Date</th>
+                                <th class="text-center p-4 font-semibold text-slate-300">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingTable">
+                            <tr>
+                                <td colspan="6" class="text-center p-8 text-slate-400">No pending investments</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="commission-tab" class="tab-content hidden">
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-semibold text-white mb-6">Commission Transaction Log</h3>
+                <div class="mb-6">
+                    <label class="text-slate-300 font-semibold mb-2 block">Calculate Commission</label>
+                    <div class="flex gap-3">
+                        <input type="number" id="profitAmount" placeholder="User profit amount ($)" class="flex-1 px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400">
+                        <select id="commissionPercent" class="px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                            <option value="2">2% commission</option>
+                            <option value="3">3% commission</option>
+                            <option value="5">5% commission</option>
+                            <option value="10">10% commission</option>
+                        </select>
+                        <button onclick="calculateCommission()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">Calculate</button>
+                    </div>
+                    <p class="text-sm text-slate-400 mt-2">Commission earned: <span id="commissionResult" class="font-bold text-green-400">$0.00</span></p>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left p-4 font-semibold text-slate-300">Date</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">User</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">User Profit</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Commission %</th>
+                                <th class="text-right p-4 font-semibold text-slate-300 text-green-400">Commission Earned</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commissionTable">
+                            <tr>
+                                <td colspan="6" class="text-center p-8 text-slate-400">No commission records yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="pending-purchases-tab" class="tab-content hidden">
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-semibold text-white mb-6">Pending Stock Purchases</h3>
+                <p class="text-slate-400 mb-6">Review and approve pending user stock purchases. Approving will automatically debit the user's balance.</p>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-slate-700">
+                                <th class="text-left p-4 font-semibold text-slate-300">User</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Stock</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Quantity</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Price per Share</th>
+                                <th class="text-right p-4 font-semibold text-slate-300">Total Amount</th>
+                                <th class="text-left p-4 font-semibold text-slate-300">Date</th>
+                                <th class="text-center p-4 font-semibold text-slate-300">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pendingPurchasesTable">
+                            <tr>
+                                <td colspan="7" class="text-center p-8 text-slate-400">No pending purchases</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="market-rates-tab" class="tab-content hidden">
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-semibold text-white mb-6">Market Rates & Fallback Data</h3>
+                <p class="text-slate-400 mb-6">Manage market rates configuration and fallback data for stocks</p>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="glass-panel-sharp p-4">
+                        <label class="text-slate-300 font-semibold mb-2 block">Update All Stock Rates Multiplier</label>
+                        <div class="flex gap-3">
+                            <input type="number" id="ratesMultiplier" step="0.01" value="1.0" class="flex-1 px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400" placeholder="1.0">
+                            <button onclick="updateRatesMultiplier()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Apply</button>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">Multiplies all stock prices by this factor</p>
+                    </div>
+                    
+                    <div class="glass-panel-sharp p-4">
+                        <label class="text-slate-300 font-semibold mb-2 block">Fallback Data Mode</label>
+                        <div class="flex gap-3 items-center">
+                            <input type="checkbox" id="useFallbackData" class="w-4 h-4">
+                            <label for="useFallbackData" class="text-slate-300">Enable fallback data when API unavailable</label>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-2">System will use pre-configured data if live data fails</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel-sharp p-4">
+                    <h4 class="text-lg font-semibold text-white mb-4">Current Market Settings</h4>
+                    <div id="marketSettingsDisplay" class="space-y-2">
+                        <p class="text-slate-400">Loading market settings...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="stock-trading-tab" class="tab-content hidden">
+            <div class="glass-panel p-6">
+                <h3 class="text-xl font-semibold text-white mb-6">Stock Trading Terminal</h3>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="glass-panel-sharp p-4">
+                        <label class="text-slate-300 font-semibold mb-2 block">Select Stock</label>
+                        <select id="tradingStockSelect" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                            <option value="">Choose a stock...</option>
+                        </select>
+                    </div>
+
+                    <div class="glass-panel-sharp p-4">
+                        <p class="text-slate-400 text-sm">Current Price</p>
+                        <p class="text-white font-bold text-2xl" id="tradingPrice">$0.00</p>
+                        <p class="text-xs text-slate-500 mt-1" id="tradingChange">+0.00%</p>
+                    </div>
+
+                    <div class="glass-panel-sharp p-4">
+                        <p class="text-slate-400 text-sm">24h Change</p>
+                        <p class="text-white font-bold text-2xl" id="trading24hChange">+0.00%</p>
+                        <p class="text-xs text-slate-500 mt-1">Volume</p>
+                    </div>
+
+                    <div class="glass-panel-sharp p-4">
+                        <p class="text-slate-400 text-sm">Your Holdings</p>
+                        <p class="text-white font-bold text-2xl" id="tradingHoldings">0</p>
+                        <p class="text-xs text-slate-500 mt-1">shares</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="glass-panel-sharp p-6" id="tradingFormContainer">
+                        <h4 class="text-white font-bold mb-4">Place Order</h4>
+                        <div id="authLockNotice" class="hidden text-red-400 mb-4"></div>
+                        <form id="tradingForm" class="space-y-4">
+                            <div>
+                                <label class="text-slate-300 text-sm font-medium mb-2 block">Action</label>
+                                <select id="tradingAction" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                                    <option value="buy">Buy</option>
+                                    <option value="sell">Sell</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-slate-300 text-sm font-medium mb-2 block">Order Type</label>
+                                <select id="tradingOrderType" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                                    <option value="market">Market Order</option>
+                                    <option value="limit">Limit Order</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-slate-300 text-sm font-medium mb-2 block">Quantity</label>
+                                <input type="number" id="tradingQuantity" step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="0.00">
+                            </div>
+                            <div id="tradingLimitPriceField" style="display: none;">
+                                <label class="text-slate-300 text-sm font-medium mb-2 block">Limit Price</label>
+                                <input type="number" id="tradingLimitPrice" step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="0.00">
+                            </div>
+                            <div class="bg-slate-700/30 p-3 rounded-lg">
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-slate-400">Est. Cost</span>
+                                    <span class="text-white font-semibold" id="tradingEstCost">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-sm mb-2">
+                                    <span class="text-slate-400">Commission</span>
+                                    <span class="text-white font-semibold" id="tradingCommission">$0.00</span>
+                                </div>
+                                <div class="flex justify-between text-sm border-t border-slate-600 pt-2">
+                                    <span class="text-slate-300">Total</span>
+                                    <span class="text-white font-bold" id="tradingTotal">$0.00</span>
+                                </div>
+                            </div>
+                            <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">Execute Order</button>
+                        </form>
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <h4 class="text-white font-bold mb-4">Recent Transactions (Selected Stock)</h4>
+                        <div class="glass-panel-sharp p-4 max-h-96 overflow-y-auto custom-scrollbar">
+                            <div id="tradingTransactions" class="space-y-2">
+                                <p class="text-slate-500 text-sm">Select a stock to view transactions</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="approvePurchaseModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="glass-panel p-6 max-w-2xl w-full mx-4">
+            <h3 class="text-xl font-bold text-white mb-4">Approve Stock Purchase</h3>
+            <div class="space-y-4">
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">User</label>
+                        <input type="text" id="approveUser" readonly class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Stock Symbol</label>
+                        <input type="text" id="approveSymbol" readonly class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Quantity</label>
+                        <input type="number" id="approveQuantity" readonly class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Total Amount</label>
+                        <input type="number" id="approveTotalAmount" readonly step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                    </div>
+                </div>
+                <div id="approveWarning" class="hidden bg-red-900/30 border border-red-600 rounded-lg p-3">
+                    <p class="text-red-300 text-sm" id="approveWarningText"></p>
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="confirmApprovePurchase()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">Approve & Debit</button>
+                    <button onclick="rejectPurchase()" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-medium">Reject</button>
+                    <button onclick="closePurchaseModal()" class="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition font-medium">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editPriceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="glass-panel p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-white mb-4">Edit Stock Price</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Symbol</label>
+                    <input type="text" id="editSymbol" readonly class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Price ($)</label>
+                    <input type="number" id="editPrice" step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Change (%)</label>
+                    <input type="number" id="editChange" step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="saveStockPrice()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Save Changes</button>
+                    <button onclick="closeModal()" class="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition font-medium">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addStockModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="glass-panel p-6 max-w-md w-full mx-4">
+            <h3 class="text-xl font-bold text-white mb-4">Add New Stock</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Symbol</label>
+                    <input type="text" id="newSymbol" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="e.g., AAPL">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                    <input type="text" id="newName" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="e.g., Apple Inc.">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Price ($)</label>
+                    <input type="number" id="newPrice" step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="175.43">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Change (%)</label>
+                    <input type="number" id="newChange" step="0.01" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="2.34">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Volume</label>
+                    <input type="text" id="newVolume" class="w-full px-4 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white" placeholder="45.2M">
+                </div>
+                <div class="flex gap-3 mt-6">
+                    <button onclick="addNewStock()" class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium">Add Stock</button>
+                    <button onclick="closeAddStockModal()" class="flex-1 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition font-medium">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="market-ticker">
+        <div class="ticker-content">
+            <div class="ticker-item">📈 AAPL +2.3% | TSLA -1.5% | GOOGL +0.8% | MSFT +1.2% | AMZN -0.5% | BTC +3.1% | ETH +2.7% | OIL -0.9% | TECH +1.4%</div>
+            <div class="ticker-item">📈 AAPL +2.3% | TSLA -1.5% | GOOGL +0.8% | MSFT +1.2% | AMZN -0.5% | BTC +3.1% | ETH +2.7% | OIL -0.9% | TECH +1.4%</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, onSnapshot, query, where, deleteDoc, writeBatch, setDoc, addDoc, serverTimestamp, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDVlCsLQZCIXTSa_lQGNiC5ORRfngCGG2E",
+            authDomain: "ctc-capital-elite.firebaseapp.com",
+            projectId: "ctc-capital-elite",
+            storageBucket: "ctc-capital-elite.appspot.com",
+            messagingSenderId: "821905163636",
+            appId: "1:821905163636:web:0c3e78fbe9c1cf14f2a5c8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let allStocks = [];
+        let allInvestments = [];
+        let pendingPurchases = [];
+        let marketSettings = { ratesMultiplier: 1.0, useFallbackData: false };
+        let currentPurchaseId = null;
+        let stockTradingInitialized = false;
+
+        const fallbackStockData = {
+            'AAPL': { symbol: 'AAPL', name: 'Apple Inc.', price: 195.45, change: 2.3, volume: '52.3M' },
+            'TSLA': { symbol: 'TSLA', name: 'Tesla Inc.', price: 238.50, change: -1.5, volume: '125.4M' },
+            'GOOGL': { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 140.25, change: 0.8, volume: '21.5M' },
+            'MSFT': { symbol: 'MSFT', name: 'Microsoft Corp.', price: 417.80, change: 1.2, volume: '15.2M' },
+            'AMZN': { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 178.90, change: -0.5, volume: '54.8M' },
+            'BTC': { symbol: 'BTC', name: 'Bitcoin', price: 62145.00, change: 3.1, volume: '28.5B' },
+            'ETH': { symbol: 'ETH', name: 'Ethereum', price: 3250.75, change: 2.7, volume: '18.3B' },
+            'OIL': { symbol: 'OIL', name: 'Oil & Gas Index', price: 78.45, change: -0.9, volume: '156M' },
+            'TECH': { symbol: 'TECH', name: 'Tech Index', price: 4250.67, change: 1.4, volume: '2.1B' }
+        };
+
+        async function loadStocks() {
+            try {
+                console.log('loadStocks: starting');
+                const stocksRef = collection(db, 'stocks');
+                onSnapshot(stocksRef, 
+                    (snapshot) => {
+                        console.log('loadStocks: snapshot received', snapshot.size);
+                        allStocks = [];
+                        const grid = document.getElementById('stocksGrid');
+                        if (!grid) {
+                            console.error('loadStocks: stocksGrid element not found');
+                            return;
+                        }
+                        grid.innerHTML = '';
+
+                        if (snapshot.size === 0) {
+                            grid.innerHTML = '<div class="col-span-full text-center p-8 text-slate-400">No stocks in database. Creating default stocks...</div>';
+                            initializeDefaultStocks();
+                            return;
+                        }
+
+                        snapshot.forEach((doc) => {
+                            const stock = doc.data();
+                            const adjustedPrice = stock.price * marketSettings.ratesMultiplier;
+                            allStocks.push({ id: doc.id, ...stock, adjustedPrice });
+
+                            const tile = document.createElement('div');
+                            tile.className = `stock-tile ${stock.change >= 0 ? 'stock-up' : 'stock-down'}`;
+                            tile.innerHTML = `
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-white text-lg">${stock.symbol}</h4>
+                                        <p class="text-slate-400 text-sm">${stock.name || '-'}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="font-bold text-white text-xl">$${adjustedPrice?.toFixed(2) || '0.00'}</p>
+                                        <p class="text-sm ${stock.change >= 0 ? 'text-green-400' : 'text-red-400'}">
+                                            ${stock.change >= 0 ? '+' : ''}${stock.change?.toFixed(2) || '0'}%
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="text-xs text-slate-500">
+                                    Vol: ${stock.volume || 'N/A'}
+                                </div>
+                                <button onclick="openEditModal('${doc.id}', '${stock.symbol}', ${adjustedPrice}, ${stock.change})" class="w-full mt-2 px-2 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700">Edit Price</button>
+                            `;
+                            grid.appendChild(tile);
+                        });
+                        initializeStockTrading();
+                    },
+                    (error) => {
+                        console.error('Error listening to stocks:', error);
+                        const grid = document.getElementById('stocksGrid');
+                        if (grid) {
+                            grid.innerHTML = '<div class="col-span-full text-center p-8 text-red-400">Error loading stocks: ' + error.message + '. Please check Firestore rules or create default data.</div>';
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error loading stocks:', error);
+                if (marketSettings.useFallbackData) {
+                    loadFallbackStocks();
+                }
+            }
+        }
+
+        async function initializeDefaultStocks() {
+            try {
+                const defaultStocks = [
+                    { symbol: 'AAPL', name: 'Apple Inc.', price: 195.45, change: 2.3, volume: '52.3M' },
+                    { symbol: 'TSLA', name: 'Tesla Inc.', price: 238.50, change: -1.5, volume: '125.4M' },
+                    { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 140.25, change: 0.8, volume: '21.5M' },
+                    { symbol: 'MSFT', name: 'Microsoft Corp.', price: 417.80, change: 1.2, volume: '15.2M' },
+                    { symbol: 'AMZN', name: 'Amazon.com Inc.', price: 178.90, change: -0.5, volume: '54.8M' },
+                    { symbol: 'BTC', name: 'Bitcoin', price: 62145.00, change: 3.1, volume: '28.5B' },
+                    { symbol: 'ETH', name: 'Ethereum', price: 3250.75, change: 2.7, volume: '18.3B' },
+                    { symbol: 'OIL', name: 'Oil & Gas Index', price: 78.45, change: -0.9, volume: '156M' },
+                    { symbol: 'TECH', name: 'Tech Index', price: 4250.67, change: 1.4, volume: '2.1B' }
+                ];
+
+                const batch = writeBatch(db);
+                defaultStocks.forEach(stock => {
+                    batch.set(doc(db, 'stocks', stock.symbol), {
+                        ...stock,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    });
+                });
+                await batch.commit();
+                console.log('Default stocks created');
+                loadStocks();
+            } catch (error) {
+                console.error('Error initializing default stocks:', error);
+            }
+        }
+
+        function loadFallbackStocks() {
+            const grid = document.getElementById('stocksGrid');
+            if(!grid) return;
+            grid.innerHTML = '';
+            Object.values(fallbackStockData).forEach((stock) => {
+                const tile = document.createElement('div');
+                tile.className = `stock-tile ${stock.change >= 0 ? 'stock-up' : 'stock-down'}`;
+                tile.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <h4 class="font-bold text-white text-lg">${stock.symbol}</h4>
+                            <p class="text-slate-400 text-sm">${stock.name}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-bold text-yellow-400 text-xl">$${stock.price?.toFixed(2)}</p>
+                            <p class="text-xs text-yellow-500">(Fallback Data)</p>
+                        </div>
+                    </div>
+                    <div class="text-xs text-slate-500">Vol: ${stock.volume}</div>
+                `;
+                grid.appendChild(tile);
+            });
+        }
+
+        async function loadPendingPurchases() {
+            try {
+                console.log('loadPendingPurchases: starting');
+                const purchasesRef = collection(db, 'pending_stock_purchases');
+                onSnapshot(purchasesRef, async (snapshot) => {
+                    console.log('loadPendingPurchases: snapshot received', snapshot.size);
+                    pendingPurchases = [];
+                    const tbody = document.getElementById('pendingPurchasesTable');
+                    if (!tbody) return;
+                    
+                    tbody.innerHTML = '';
+                    const badge = document.getElementById('pendingPurchaseCount');
+                    if (badge) badge.textContent = snapshot.size;
+
+                    if (snapshot.size === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center p-8 text-slate-400">No pending purchases</td></tr>';
+                        return;
+                    }
+
+                    for (const docSnap of snapshot.docs) {
+                        const purchase = docSnap.data();
+                        try {
+                            const userDoc = await getDoc(doc(db, 'users', purchase.userId));
+                            const userName = userDoc.exists() ? (userDoc.data().displayName || userDoc.data().email) : 'Unknown User';
+
+                            pendingPurchases.push({ id: docSnap.id, ...purchase });
+
+                            let dateDisplay = "N/A";
+                            if (purchase.createdAt) {
+                                dateDisplay = purchase.createdAt.toDate ? purchase.createdAt.toDate().toLocaleString() : new Date(purchase.createdAt).toLocaleString();
+                            }
+
+                            const row = document.createElement('tr');
+                            row.className = 'border-b border-slate-700 hover:bg-slate-800';
+                            row.innerHTML = `
+                                <td class="p-4 font-medium text-white">${userName}</td>
+                                <td class="p-4 font-semibold text-blue-400">${purchase.symbol}</td>
+                                <td class="p-4 text-right text-white">${purchase.quantity}</td>
+                                <td class="p-4 text-right text-white">$${purchase.pricePerShare?.toFixed(2)}</td>
+                                <td class="p-4 text-right font-semibold text-white">$${(purchase.quantity * purchase.pricePerShare)?.toFixed(2)}</td>
+                                <td class="p-4 text-left text-slate-400 text-sm">${dateDisplay}</td>
+                                <td class="p-4 text-center">
+                                    <button onclick="openApprovePurchaseModal('${docSnap.id}', '${purchase.userId}', '${userName}', '${purchase.symbol}', ${purchase.quantity}, ${purchase.pricePerShare})" class="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs mr-2">Approve</button>
+                                    <button onclick="rejectPurchaseQuick('${docSnap.id}')" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs">Reject</button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        } catch (err) {
+                            console.error('Error loading purchase user:', err);
+                        }
+                    }
+                }, (error) => {
+                    console.error('Error listening to pending purchases:', error);
+                    const tbody = document.getElementById('pendingPurchasesTable');
+                    if (tbody) {
+                        tbody.innerHTML = '<tr><td colspan="7" class="text-center p-8 text-red-400">Error loading pending purchases</td></tr>';
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading pending purchases:', error);
+            }
+        }
+
+        async function loadUserInvestments() {
+            try {
+                console.log('loadUserInvestments: starting');
+                const usersRef = collection(db, 'users');
+                const usersSnap = await getDocs(usersRef);
+                const tbody = document.getElementById('investmentsTable');
+                if (!tbody) {
+                    console.error('loadUserInvestments: investmentsTable element not found');
+                    return;
+                }
+                
+                tbody.innerHTML = '';
+                let totalMarket = 0;
+                let totalProfit = 0;
+                let activeCount = 0;
+
+                console.log('Loading investments for', usersSnap.size, 'users');
+
+                for (const userDoc of usersSnap.docs) {
+                    try {
+                        const portfolioRef = collection(db, 'users', userDoc.id, 'portfolio');
+                        const portfolioSnap = await getDocs(portfolioRef);
+
+                        portfolioSnap.forEach((investDoc) => {
+                            const invest = investDoc.data();
+                            if (invest.quantityOwned > 0 && invest.status !== 'sold') {
+                                activeCount++;
+                                const currentPrice = invest.currentPrice || invest.lastPurchasePrice || invest.averagePrice || 0;
+                                const currentValue = invest.quantityOwned * currentPrice;
+                                const profitLoss = currentValue - invest.totalInvested;
+                                totalMarket += currentValue;
+                                totalProfit += profitLoss;
+
+                                const row = document.createElement('tr');
+                                row.className = 'border-b border-slate-700 hover:bg-slate-800';
+                                row.innerHTML = `
+                                    <td class="p-4 font-medium text-white">${userDoc.data().displayName || userDoc.data().email || 'User'}</td>
+                                    <td class="p-4 font-semibold text-blue-400">${invest.symbol}</td>
+                                    <td class="p-4 text-right text-white">$${invest.totalInvested?.toFixed(2)}</td>
+                                    <td class="p-4 text-right text-slate-300">$${(invest.averagePrice || invest.totalInvested / invest.quantityOwned)?.toFixed(2)}</td>
+                                    <td class="p-4 text-right font-semibold text-white">$${currentValue?.toFixed(2)}</td>
+                                    <td class="p-4 text-right ${profitLoss >= 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'}">${profitLoss >= 0 ? '+' : ''}$${profitLoss?.toFixed(2)}</td>
+                                    <td class="p-4 text-center"><span class="px-2 py-1 bg-green-600 text-white rounded text-xs">Active</span></td>
+                                    <td class="p-4 text-center"><button class="text-blue-400 hover:underline text-sm">View</button></td>
+                                `;
+                                tbody.appendChild(row);
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error loading portfolio for user', userDoc.id, ':', error);
+                    }
+                }
+
+                if (tbody.innerHTML === '') {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 text-slate-400">No active investments found</td></tr>';
+                }
+
+                const totalMarketEl = document.getElementById('totalMarketValue');
+                const totalProfitEl = document.getElementById('totalUserProfit');
+                const activeInvEl = document.getElementById('activeInvestments');
+
+                if (totalMarketEl) totalMarketEl.textContent = `$${totalMarket.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (totalProfitEl) totalProfitEl.textContent = `$${totalProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                if (activeInvEl) activeInvEl.textContent = activeCount;
+
+                console.log('Investments loaded - Total Market:', totalMarket, 'Total Profit:', totalProfit, 'Active:', activeCount);
+            } catch (error) {
+                console.error('Error loading investments:', error);
+                const tbody = document.getElementById('investmentsTable');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="text-center p-8 text-red-400">Error: ' + error.message + '</td></tr>';
+                }
+            }
+        }
+
+        async function loadMarketSettings() {
+            try {
+                const settingsRef = doc(db, 'admin_controls', 'market_rates');
+                onSnapshot(settingsRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        marketSettings = { ...marketSettings, ...docSnap.data() };
+                    }
+                    if (document.getElementById('ratesMultiplier')) {
+                        document.getElementById('ratesMultiplier').value = marketSettings.ratesMultiplier || 1.0;
+                    }
+                    if (document.getElementById('useFallbackData')) {
+                        document.getElementById('useFallbackData').checked = marketSettings.useFallbackData || false;
+                    }
+                    displayMarketSettings();
+                }, (error) => {
+                    console.warn('Market settings not found, using defaults:', error.message);
+                    displayMarketSettings();
+                });
+            } catch (error) {
+                console.error('Error loading market settings:', error);
+                displayMarketSettings();
+            }
+        }
+
+        function displayMarketSettings() {
+            const settingsDisplay = document.getElementById('marketSettingsDisplay');
+            if(!settingsDisplay) return;
+            settingsDisplay.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <div><span class="text-slate-400">Rates Multiplier:</span> <span class="text-white font-semibold">${marketSettings.ratesMultiplier?.toFixed(2) || '1.00'}</span></div>
+                    <div><span class="text-slate-400">Fallback Data Enabled:</span> <span class="text-white font-semibold">${marketSettings.useFallbackData ? 'Yes' : 'No'}</span></div>
+                    <div><span class="text-slate-400">Last Updated:</span> <span class="text-white font-semibold">${marketSettings.updatedAt ? (marketSettings.updatedAt.toDate ? marketSettings.updatedAt.toDate().toLocaleString() : new Date(marketSettings.updatedAt).toLocaleString()) : new Date().toLocaleString()}</span></div>
+                    <div><span class="text-slate-400">Active Stocks:</span> <span class="text-white font-semibold">${allStocks.length}</span></div>
+                </div>
+            `;
+        }
+
+        window.updateRatesMultiplier = async function() {
+            const multiplier = parseFloat(document.getElementById('ratesMultiplier').value);
+            if (isNaN(multiplier) || multiplier <= 0) {
+                alert('Please enter a valid multiplier value');
+                return;
+            }
+            try {
+                const settingsRef = doc(db, 'admin_controls', 'market_rates');
+                await setDoc(settingsRef, {
+                    ratesMultiplier: multiplier,
+                    updatedAt: new Date(),
+                    updatedBy: auth.currentUser?.email || 'admin'
+                }, { merge: true });
+                alert('Market rates multiplier updated successfully! All stock pages will reflect changes.');
+                loadStocks();
+                displayMarketSettings();
+            } catch (error) {
+                console.error('Error updating multiplier:', error);
+                alert('Error updating rates multiplier: ' + error.message);
+            }
+        };
+
+        window.openApprovePurchaseModal = function(purchaseId, userId, userName, symbol, quantity, pricePerShare) {
+            currentPurchaseId = purchaseId;
+            document.getElementById('approveUser').value = userName;
+            document.getElementById('approveSymbol').value = symbol;
+            document.getElementById('approveQuantity').value = quantity;
+            document.getElementById('approveTotalAmount').value = (quantity * pricePerShare).toFixed(2);
+            document.getElementById('approveWarning').classList.add('hidden');
+            document.getElementById('approvePurchaseModal').classList.remove('hidden');
+        };
+
+        window.closePurchaseModal = function() {
+            document.getElementById('approvePurchaseModal').classList.add('hidden');
+            currentPurchaseId = null;
+        };
+
+        window.confirmApprovePurchase = async function() {
+            if (!currentPurchaseId) return;
+            try {
+                const purchaseRef = doc(db, 'pending_stock_purchases', currentPurchaseId);
+                const purchaseSnap = await getDoc(purchaseRef);
+                if (!purchaseSnap.exists()) {
+                    alert('Pending purchase reference missing.');
+                    return;
+                }
+                const purchaseData = purchaseSnap.data();
+                const totalCost = purchaseData.totalCost || (purchaseData.quantity * purchaseData.pricePerShare);
+                const commission = purchaseData.commission || 0;
+                const totalAmount = totalCost + commission;
+
+                const userRef = doc(db, 'users', purchaseData.userId);
+                const userDoc = await getDoc(userRef);
+                if (!userDoc.exists()) {
+                    alert('User no longer exists.');
+                    return;
+                }
+                const userData = userDoc.data();
+                const currentBalance = userData.usdBalance || userData.totalBalance || 0;
+
+                if (currentBalance < totalAmount) {
+                    document.getElementById('approveWarning').classList.remove('hidden');
+                    document.getElementById('approveWarningText').textContent = `Insufficient balance. User has $${currentBalance.toFixed(2)}, but requires $${totalAmount.toFixed(2)}`;
+                    return;
+                }
+
+                const batch = writeBatch(db);
+
+                batch.update(userRef, {
+                    usdBalance: currentBalance - totalAmount,
+                    totalBalance: currentBalance - totalAmount,
+                    lastPurchaseAt: new Date(),
+                    updatedAt: new Date()
+                });
+
+                const portfolioRef = doc(db, 'users', purchaseData.userId, 'portfolio', purchaseData.symbol);
+                const portfolioDoc = await getDoc(portfolioRef);
+                
+                let portfolioData = {};
+                if (portfolioDoc.exists()) {
+                    const existing = portfolioDoc.data();
+                    const newTotalQty = existing.quantityOwned + purchaseData.quantity;
+                    const newTotalInvested = existing.totalInvested + totalCost;
+                    portfolioData = {
+                        symbol: purchaseData.symbol,
+                        quantityOwned: newTotalQty,
+                        totalInvested: newTotalInvested,
+                        averagePrice: newTotalInvested / newTotalQty,
+                        currentPrice: purchaseData.pricePerShare,
+                        totalCommission: (existing.totalCommission || 0) + commission,
+                        lastPurchasePrice: purchaseData.pricePerShare,
+                        lastPurchaseAt: new Date(),
+                        status: 'active',
+                        updatedAt: new Date()
+                    };
+                } else {
+                    portfolioData = {
+                        symbol: purchaseData.symbol,
+                        quantityOwned: purchaseData.quantity,
+                        totalInvested: totalCost,
+                        averagePrice: purchaseData.pricePerShare,
+                        currentPrice: purchaseData.pricePerShare,
+                        totalCommission: commission,
+                        lastPurchasePrice: purchaseData.pricePerShare,
+                        purchasedAt: new Date(),
+                        lastPurchaseAt: new Date(),
+                        status: 'active',
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    };
+                }
+                
+                batch.set(portfolioRef, portfolioData, { merge: true });
+
+                const newTxRef = doc(collection(db, 'users', purchaseData.userId, 'transactions'));
+                batch.set(newTxRef, {
+                    userId: purchaseData.userId,
+                    symbol: purchaseData.symbol,
+                    type: 'buy',
+                    quantity: purchaseData.quantity,
+                    pricePerShare: purchaseData.pricePerShare,
+                    totalCost: totalCost,
+                    commission: commission,
+                    totalAmount: totalAmount,
+                    status: 'completed',
+                    approvedBy: auth.currentUser?.email || 'admin',
+                    approvedAt: new Date(),
+                    createdAt: new Date()
+                });
+
+                batch.delete(purchaseRef);
+                await batch.commit();
+
+                alert('Purchase approved! User balance has been debited.');
+                closePurchaseModal();
+                await loadUserInvestments();
+            } catch (error) {
+                console.error('Error approving purchase:', error);
+                alert('Error approving purchase: ' + error.message);
+            }
+        };
+
+        window.rejectPurchase = async function() {
+            if (!currentPurchaseId) return;
+            await rejectPurchaseQuick(currentPurchaseId);
+            closePurchaseModal();
+        };
+
+        window.rejectPurchaseQuick = async function(purchaseId) {
+            try {
+                await deleteDoc(doc(db, 'pending_stock_purchases', purchaseId));
+                alert('Purchase rejected and removed');
+            } catch (error) {
+                console.error('Error rejecting purchase:', error);
+                alert('Error rejecting purchase');
+            }
+        };
+
+        window.switchTab = function(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('text-white', 'border-b-2', 'border-blue-400'));
+            document.querySelectorAll('.tab-button').forEach(el => el.classList.add('text-slate-400'));
+
+            const tabContent = document.getElementById(tab + '-tab');
+            if (tabContent) {
+                tabContent.classList.remove('hidden');
+            }
+
+            const activeButton = document.querySelector(`.tab-button[onclick="switchTab('${tab}')"]`);
+            if (activeButton) {
+                activeButton.classList.remove('text-slate-400');
+                activeButton.classList.add('text-white', 'border-b-2', 'border-blue-400');
+            }
+        };
+
+        window.openEditModal = function(stockId, symbol, price, change) {
+            document.getElementById('editSymbol').value = symbol;
+            document.getElementById('editPrice').value = price;
+            document.getElementById('editChange').value = change;
+            document.getElementById('editSymbol').dataset.stockId = stockId;
+            document.getElementById('editPriceModal').classList.remove('hidden');
+        };
+
+        window.closeModal = function() {
+            document.getElementById('editPriceModal').classList.add('hidden');
+        };
+
+        window.saveStockPrice = async function() {
+            const stockId = document.getElementById('editSymbol').dataset.stockId;
+            const newPrice = parseFloat(document.getElementById('editPrice').value);
+            const newChange = parseFloat(document.getElementById('editChange').value);
+
+            if (isNaN(newPrice) || isNaN(newChange)) {
+                alert('Please enter valid values');
+                return;
+            }
+
+            try {
+                await updateDoc(doc(db, 'stocks', stockId), {
+                    price: newPrice,
+                    change: newChange,
+                    updatedAt: new Date()
+                });
+                alert('Stock price updated successfully');
+                closeModal();
+            } catch (error) {
+                console.error('Error updating stock:', error);
+                alert('Error updating stock price');
+            }
+        };
+
+        window.openAddStockModal = function() {
+            document.getElementById('addStockModal').classList.remove('hidden');
+        };
+
+        window.closeAddStockModal = function() {
+            document.getElementById('addStockModal').classList.add('hidden');
+        };
+
+        window.addNewStock = async function() {
+            const symbol = document.getElementById('newSymbol').value.toUpperCase();
+            const name = document.getElementById('newName').value;
+            const price = parseFloat(document.getElementById('newPrice').value);
+            const change = parseFloat(document.getElementById('newChange').value);
+            const volume = document.getElementById('newVolume').value;
+
+            if (!symbol || !name || isNaN(price) || price <= 0) {
+                alert('Please fill all fields with valid data');
+                return;
+            }
+
+            try {
+                const stockRef = doc(db, 'stocks', symbol);
+                await setDoc(stockRef, {
+                    symbol: symbol,
+                    name: name,
+                    price: price,
+                    change: change,
+                    volume: volume,
+                    createdAt: new Date(),
+                    updatedAt: new Date(),
+                    createdBy: auth.currentUser?.email || 'admin'
+                });
+                alert('New stock added successfully! It will appear on all market pages.');
+                closeAddStockModal();
+                document.getElementById('newSymbol').value = '';
+                document.getElementById('newName').value = '';
+                document.getElementById('newPrice').value = '';
+                document.getElementById('newChange').value = '';
+                document.getElementById('newVolume').value = '';
+            } catch (error) {
+                console.error('Error adding stock:', error);
+                alert('Error adding stock: ' + error.message);
+            }
+        };
+
+        window.calculateCommission = function() {
+            const profit = parseFloat(document.getElementById('profitAmount').value);
+            const percent = parseFloat(document.getElementById('commissionPercent').value);
+            const commission = profit * (percent / 100);
+            document.getElementById('commissionResult').textContent = `$${commission.toFixed(2)}`;
+        };
+
+        async function loadStockPages() {
+            const grid = document.getElementById('stockPagesGrid');
+            if (!grid) return;
+
+            const stockPages = [
+                { symbol: 'AAPL', name: 'Apple Inc.', page: 'stocks/apple.html' },
+                { symbol: 'TSLA', name: 'Tesla Inc.', page: 'stocks/tesla.html' },
+                { symbol: 'GOOGL', name: 'Alphabet Inc.', page: 'stocks/google.html' },
+                { symbol: 'MSFT', name: 'Microsoft Corp.', page: 'stocks/microsoft.html' },
+                { symbol: 'AMZN', name: 'Amazon.com Inc.', page: 'stocks/amazon.html' },
+                { symbol: 'BTC', name: 'Bitcoin', page: 'stocks/btc.html' },
+                { symbol: 'ETH', name: 'Ethereum', page: 'stocks/eth.html' },
+                { symbol: 'OIL', name: 'Oil & Gas Index', page: 'stocks/oil-gas.html' },
+                { symbol: 'TECH', name: 'Tech Index', page: 'stocks/tech-index.html' }
+            ];
+
+            grid.innerHTML = '';
+            stockPages.forEach(stock => {
+                const card = document.createElement('div');
+                card.className = 'glass-panel-sharp p-4 hover:bg-slate-700 transition cursor-pointer';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-bold text-white text-lg">${stock.symbol}</h4>
+                            <p class="text-slate-400 text-sm">${stock.name}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-500">Page</span>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="window.open('${stock.page}', '_blank')" class="flex-1 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">View Page</button>
+                        <button onclick="editStockPage('${stock.page}')" class="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">Edit Page</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        window.editStockPage = function(pageUrl) {
+            alert(`To edit ${pageUrl}, open it in your code editor. Changes to stock data in this admin panel will automatically reflect on the page.`);
+        };
+        
+        async function initializeStockTrading() {
+            console.log('initializeStockTrading: start');
+            const select = document.getElementById('tradingStockSelect');
+            const orderType = document.getElementById('tradingOrderType');
+            const quantityInput = document.getElementById('tradingQuantity');
+            const limitPriceInput = document.getElementById('tradingLimitPrice');
+            const form = document.getElementById('tradingForm');
+
+            if (!select || !orderType || !quantityInput || !limitPriceInput || !form) {
+                console.error('initializeStockTrading: missing trading form elements');
+                return;
+            }
+
+            const currentSelection = select.value;
+            select.innerHTML = '<option value="">Choose a stock...</option>';
+            allStocks.forEach(stock => {
+                const option = document.createElement('option');
+                option.value = stock.symbol;
+                option.textContent = `${stock.symbol} - ${stock.name}`;
+                if(stock.symbol === currentSelection) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+
+            if (!stockTradingInitialized) {
+                select.addEventListener('change', handleStockSelection);
+                orderType.addEventListener('change', handleOrderTypeChange);
+                quantityInput.addEventListener('input', calculateTradingCost);
+                limitPriceInput.addEventListener('input', calculateTradingCost);
+                form.addEventListener('submit', submitTradingOrder);
+                stockTradingInitialized = true;
+                console.log('initializeStockTrading: event listeners attached');
+            }
+        }
+
+        let selectedTradingStock = null;
+
+        function handleStockSelection(e) {
+            const symbol = e.target.value;
+            if (!symbol) {
+                selectedTradingStock = null;
+                resetTradingDisplay();
+                return;
+            }
+
+            selectedTradingStock = allStocks.find(s => s.symbol === symbol);
+            if (selectedTradingStock) {
+                updateTradingDisplay();
+                loadTradingTransactionHistory(symbol);
+                loadTradingHoldings(symbol);
+            }
+        }
+
+        function updateTradingDisplay() {
+            if (!selectedTradingStock) return;
+
+            document.getElementById('tradingPrice').textContent = `$${selectedTradingStock.price?.toFixed(2) || '0.00'}`;
+            document.getElementById('tradingChange').textContent = `${selectedTradingStock.change >= 0 ? '+' : ''}${selectedTradingStock.change?.toFixed(2) || '0'}%`;
+            document.getElementById('trading24hChange').textContent = `${selectedTradingStock.change >= 0 ? '+' : ''}${selectedTradingStock.change?.toFixed(2) || '0'}%`;
+            calculateTradingCost();
+        }
+
+        function resetTradingDisplay() {
+            document.getElementById('tradingPrice').textContent = '$0.00';
+            document.getElementById('tradingChange').textContent = '+0.00%';
+            document.getElementById('trading24hChange').textContent = '+0.00%';
+            document.getElementById('tradingHoldings').textContent = '0';
+            document.getElementById('tradingTransactions').innerHTML = '<p class="text-slate-500 text-sm">Select a stock to view transactions</p>';
+            document.getElementById('tradingForm').reset();
+            calculateTradingCost();
+        }
+
+        function handleOrderTypeChange(e) {
+            const field = document.getElementById('tradingLimitPriceField');
+            field.style.display = e.target.value === 'limit' ? 'block' : 'none';
+            calculateTradingCost();
+        }
+
+        function calculateTradingCost() {
+            if (!selectedTradingStock) return;
+
+            const quantity = parseFloat(document.getElementById('tradingQuantity').value) || 0;
+            const orderType = document.getElementById('tradingOrderType').value;
+            let price = selectedTradingStock.price;
+
+            if (orderType === 'limit') {
+                price = parseFloat(document.getElementById('tradingLimitPrice').value) || selectedTradingStock.price;
+            }
+
+            const totalCost = quantity * price;
+            const commission = totalCost * 0.002;
+            const total = totalCost + commission;
+
+            document.getElementById('tradingEstCost').textContent = `$${totalCost.toFixed(2)}`;
+            document.getElementById('tradingCommission').textContent = `$${commission.toFixed(2)}`;
+            document.getElementById('tradingTotal').textContent = `$${total.toFixed(2)}`;
+        }
+
+        async function submitTradingOrder(e) {
+            e.preventDefault();
+            if (!selectedTradingStock || !auth.currentUser) {
+                alert('Please select a stock and ensure you are logged in');
+                return;
+            }
+
+            const quantity = parseFloat(document.getElementById('tradingQuantity').value);
+            const action = document.getElementById('tradingAction').value;
+            const orderType = document.getElementById('tradingOrderType').value;
+            let price = selectedTradingStock.price;
+
+            if (orderType === 'limit') {
+                price = parseFloat(document.getElementById('tradingLimitPrice').value);
+            }
+
+            if (quantity <= 0 || price <= 0) {
+                alert('Please enter valid quantity and price');
+                return;
+            }
+
+            try {
+                const totalCost = quantity * price;
+                const commission = totalCost * 0.002;
+                const totalAmount = totalCost + commission;
+
+                if (action === 'buy') {
+                    await addDoc(collection(db, 'pending_stock_purchases'), {
+                        userId: auth.currentUser.uid,
+                        userEmail: auth.currentUser.email,
+                        userName: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
+                        symbol: selectedTradingStock.symbol,
+                        quantity,
+                        pricePerShare: price,
+                        totalCost,
+                        commission,
+                        totalAmount,
+                        orderType,
+                        status: 'pending',
+                        createdAt: serverTimestamp(),
+                        createdBy: auth.currentUser.email,
+                        source: 'admin-trading'
+                    });
+
+                    alert(`Buy request submitted for ${quantity} shares of ${selectedTradingStock.symbol}.\nTotal: $${totalAmount.toFixed(2)}\n\nAwaiting admin approval`);
+                } else {
+                    await addDoc(collection(db, 'users', auth.currentUser.uid, 'transactions'), {
+                        userId: auth.currentUser.uid,
+                        symbol: selectedTradingStock.symbol,
+                        type: 'sell',
+                        quantity,
+                        pricePerShare: price,
+                        totalCost,
+                        commission,
+                        totalAmount,
+                        orderType,
+                        status: 'pending',
+                        createdAt: serverTimestamp(),
+                        source: 'admin-trading'
+                    });
+
+                    alert(`Sell request submitted for ${quantity} shares of ${selectedTradingStock.symbol}.\nTotal: $${totalCost.toFixed(2)}`);
+                }
+
+                document.getElementById('tradingForm').reset();
+                calculateTradingCost();
+                loadTradingTransactionHistory(selectedTradingStock.symbol);
+            } catch (error) {
+                console.error('Trading error:', error);
+                alert('Error submitting order: ' + error.message);
+            }
+        }
+
+        async function loadTradingTransactionHistory(symbol) {
+            const container = document.getElementById('tradingTransactions');
+            if(!container) return;
+            try {
+                const q = query(
+                    collection(db, 'users', auth.currentUser?.uid || 'guest', 'transactions'),
+                    where('symbol', '==', symbol),
+                    orderBy('createdAt', 'desc')
+                );
+
+                const snapshot = await getDocs(q);
+                if (snapshot.empty) {
+                    container.innerHTML = '<p class="text-slate-500 text-sm">No transactions for this stock</p>';
+                    return;
+                }
+
+                container.innerHTML = '';
+                snapshot.forEach(doc => {
+                    const tx = doc.data();
+                    let date = new Date();
+                    if(tx.createdAt) {
+                        date = tx.createdAt.toDate ? tx.createdAt.toDate() : new Date(tx.createdAt);
+                    }
+                    const row = document.createElement('div');
+                    row.className = 'flex justify-between p-2 border-b border-slate-700 text-sm';
+                    row.innerHTML = `
+                        <div>
+                            <span class="font-semibold ${tx.type === 'buy' ? 'text-blue-400' : 'text-orange-400'}">${tx.type?.toUpperCase()}</span>
+                            <p class="text-slate-500 text-xs">${date.toLocaleDateString()}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white font-semibold">${tx.quantity} shares</p>
+                            <p class="text-slate-400 text-xs">@ $${tx.pricePerShare?.toFixed(2)}</p>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading transactions:', error);
+                container.innerHTML = '<p class="text-red-400 text-sm">Error loading transactions</p>';
+            }
+        }
+
+        async function loadTradingHoldings(symbol) {
+            try {
+                if (!auth.currentUser) return;
+                const portfolioRef = doc(db, 'users', auth.currentUser.uid, 'portfolio', symbol);
+                const snap = await getDoc(portfolioRef);
+                if (snap.exists()) {
+                    document.getElementById('tradingHoldings').textContent = snap.data().quantityOwned?.toFixed(2) || '0';
+                } else {
+                    document.getElementById('tradingHoldings').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading holdings:', error);
+                document.getElementById('tradingHoldings').textContent = '0';
+            }
+        }
+
+        console.log('Admin market page script initializing');
+        loadMarketSettings().then(() => {
+            loadStocks();
+            loadUserInvestments();
+            loadPendingPurchases();
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            const form = document.getElementById('tradingForm');
+            const notice = document.getElementById('authLockNotice');
+            if (!form || !notice) return;
+
+            if (user) {
+                console.log('Admin user logged in:', user.email);
+                form.classList.remove('pointer-events-none', 'opacity-50');
+                notice.classList.add('hidden');
+                if(selectedTradingStock) {
+                    loadTradingTransactionHistory(selectedTradingStock.symbol);
+                    loadTradingHoldings(selectedTradingStock.symbol);
+                }
+            } else {
+                console.log('No admin user logged in');
+                form.classList.add('pointer-events-none', 'opacity-50');
+                notice.innerHTML = '<i data-lucide="lock" class="w-4 h-4 inline mr-2"></i>Please log in to use trading features';
+                notice.classList.remove('hidden');
+            }
+        });
+
+        lucide.createIcons();
+    </script>
+</body>
+</html>

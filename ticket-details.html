@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ticket Details | CTC Capital Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020814; color: #e2e8f0; overflow-x: hidden; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.5rem; }
+            h2 { font-size: 1.25rem; }
+            h3 { font-size: 1.1rem; }
+            .glass-panel, .max-w-md, .max-w-6xl {
+                padding: 1rem !important;
+            }
+        }
+        .glass-panel { background: rgba(15, 23, 42, 0.86); backdrop-filter: blur(18px); border: 1px solid rgba(148, 163, 184, 0.18); }
+        .status-pill { border-radius: 9999px; padding: 0.35rem 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    </style>
+</head>
+<body class="min-h-screen overflow-x-hidden">
+    <div id="adminSidebar"></div>
+    <main class="ml-64 px-6 py-8 max-w-7xl">
+        <header class="mb-10">
+            <p class="text-sm uppercase tracking-[0.35em] text-sky-400">Support Ticket Detail</p>
+            <h1 class="mt-3 text-4xl font-extrabold text-white">Ticket Details</h1>
+            <p class="max-w-3xl text-slate-400 mt-4">Review support request content and resolve or restore the ticket from here.</p>
+        </header>
+
+        <section id="ticketContainer" class="glass-panel rounded-[2rem] p-8 shadow-2xl shadow-slate-950/40">
+            <div id="ticketLoading" class="text-slate-400">Loading ticket information...</div>
+        </section>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js';
+        import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: 'AIzaSyAjx0r8OsJAEI8sdTopWadcGYcnD9jcme4',
+            authDomain: 'ctc-capital.firebaseapp.com',
+            projectId: 'ctc-capital',
+            storageBucket: 'ctc-capital.firebasestorage.app',
+            messagingSenderId: '563837502113',
+            appId: '1:563837502113:web:d84ae0e9d07c997ebb26e0',
+            measurementId: 'G-7L643VX04V'
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const ticketContainer = document.getElementById('ticketContainer');
+        const params = new URLSearchParams(window.location.search);
+        const ticketId = params.get('ticketId');
+
+        function formatDate(value) {
+            if (!value) return 'N/A';
+            const date = value.toDate ? value.toDate() : new Date(value);
+            return date.toLocaleDateString();
+        }
+
+        async function loadTicket() {
+            if (!ticketId) {
+                ticketContainer.innerHTML = '<p class="text-red-400">No ticket selected. Please open this page from the support ticket list.</p>';
+                return;
+            }
+
+            try {
+                const ticketDoc = await getDoc(doc(db, 'supportTickets', ticketId));
+                if (!ticketDoc.exists()) {
+                    ticketContainer.innerHTML = '<p class="text-red-400">Ticket not found.</p>';
+                    return;
+                }
+
+                const ticket = { id: ticketDoc.id, ...ticketDoc.data() };
+                ticketContainer.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="rounded-[2rem] border border-slate-700 bg-slate-950/80 p-6">
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="text-sm uppercase tracking-[0.35em] text-slate-400">Ticket #${ticket.id}</p>
+                                    <h2 class="mt-2 text-2xl font-semibold text-white">${ticket.subject || 'No subject provided'}</h2>
+                                </div>
+                                <span class="status-pill ${ticket.status === 'resolved' ? 'bg-emerald-600 text-white' : 'bg-amber-500 text-slate-950'}">${ticket.status || 'Open'}</span>
+                            </div>
+                            <div class="mt-6 grid gap-4 sm:grid-cols-2">
+                                <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-5">
+                                    <p class="text-sm text-slate-400">User ID</p>
+                                    <p class="mt-2 text-white">${ticket.uid || 'Unknown'}</p>
+                                </div>
+                                <div class="rounded-3xl border border-slate-700 bg-slate-900/80 p-5">
+                                    <p class="text-sm text-slate-400">Category</p>
+                                    <p class="mt-2 text-white">${ticket.category || 'General'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rounded-[2rem] border border-slate-700 bg-slate-950/80 p-6">
+                            <h3 class="text-xl font-semibold text-white">Message</h3>
+                            <p class="mt-4 text-slate-300 whitespace-pre-line">${ticket.message || 'No message text'}</p>
+                        </div>
+                        <div class="rounded-[2rem] border border-slate-700 bg-slate-950/80 p-6">
+                            <div class="grid gap-4 sm:grid-cols-3">
+                                <div>
+                                    <p class="text-sm text-slate-400">Submitted</p>
+                                    <p class="mt-2 text-white">${formatDate(ticket.createdAt)}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-400">Priority</p>
+                                    <p class="mt-2 text-white">${ticket.priority || 'Normal'}</p>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-400">Assigned to</p>
+                                    <p class="mt-2 text-white">${ticket.assignedTo || 'Unassigned'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-4">
+                            <button id="resolveTicketBtn" class="rounded-3xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white hover:bg-emerald-500 transition">Mark Resolved</button>
+                            <button id="reopenTicketBtn" class="rounded-3xl bg-slate-700 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-600 transition">Reopen Ticket</button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('resolveTicketBtn').addEventListener('click', () => updateTicketStatus('resolved'));
+                document.getElementById('reopenTicketBtn').addEventListener('click', () => updateTicketStatus('open'));
+            } catch (error) {
+                console.error('Error loading ticket:', error);
+                ticketContainer.innerHTML = '<p class="text-red-400">Unable to load ticket details.</p>';
+            }
+        }
+
+        async function updateTicketStatus(status) {
+            try {
+                await updateDoc(doc(db, 'supportTickets', ticketId), {
+                    status,
+                    updatedAt: new Date()
+                });
+                loadTicket();
+                alert(`Ticket status updated to ${status}.`);
+            } catch (error) {
+                console.error('Error updating ticket status:', error);
+                alert('Failed to update ticket status.');
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = '../public/login.html';
+                return;
+            }
+            loadTicket();
+        });
+    </script>
+    <script type="module" src="../components/layout/adminSidebar.js"></script>
+</body>
+</html>
