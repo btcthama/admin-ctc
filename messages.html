@@ -64,21 +64,21 @@
 </head>
 <body class="min-h-screen pb-10">
     <div id="adminSidebar"></div>
-    <div id="mainContent" class="ml-64 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 overflow-x-hidden max-w-full">
-        <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+    <div id="mainContent" class="ml-0 lg:ml-64 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 overflow-x-hidden max-w-full">
+        <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
             <div>
                 <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Admin Control</p>
-                <h1 class="mt-3 text-3xl font-bold text-slate-100">Messaging Center</h1>
-                <p class="mt-2 text-slate-400 max-w-2xl">Send targeted messages to users, broadcast announcements, and manage communication channels.</p>
+                <h1 class="mt-3 text-2xl sm:text-3xl font-bold text-slate-100">Messaging Center</h1>
+                <p class="mt-2 text-slate-400 max-w-2xl text-sm sm:text-base">Send targeted messages to users, broadcast announcements, and manage communication channels.</p>
             </div>
-            <div class="flex gap-3">
-                <a href="users.html" class="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+            <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <a href="users.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition text-sm sm:text-base w-full sm:w-auto">
                     <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                     </svg>
                     Manage Users
                 </a>
-                <a href="../app/dashboard.html" class="inline-flex items-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                <a href="../app/dashboard.html" class="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition text-sm sm:text-base w-full sm:w-auto">
                     <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
                     </svg>
@@ -89,17 +89,17 @@
 
         <section class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
             <div class="space-y-6">
-                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+                <div class="glass-panel rounded-[2rem] p-4 sm:p-6 shadow-2xl shadow-slate-950/30">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
                         <div>
                             <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Compose Message</p>
                             <h3 class="mt-2 text-xl font-semibold text-slate-100">Send New Message</h3>
                         </div>
-                        <div class="flex gap-3">
-                            <button id="broadcastBtn" class="rounded-2xl bg-amber-600 px-4 py-3 text-white font-semibold hover:bg-amber-700 transition">
+                        <div class="flex gap-3 w-full sm:w-auto">
+                            <button id="broadcastBtn" class="flex-1 sm:flex-initial rounded-2xl bg-amber-600 px-4 py-3 text-white font-semibold hover:bg-amber-700 transition text-sm sm:text-base">
                                 Broadcast to All
                             </button>
-                            <button id="sendToUserBtn" class="rounded-2xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition">
+                            <button id="sendToUserBtn" class="flex-1 sm:flex-initial rounded-2xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition text-sm sm:text-base">
                                 Send to User
                             </button>
                         </div>
@@ -109,13 +109,13 @@
                         <div class="grid gap-6 md:grid-cols-2">
                             <div>
                                 <label class="block text-sm font-semibold text-slate-300 mb-2">Recipient</label>
-                                <select id="recipientSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                                <select id="recipientSelect" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 text-sm sm:text-base">
                                     <option value="">Select a user...</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold text-slate-300 mb-2">Message Type</label>
-                                <select id="messageType" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                                <select id="messageType" class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 text-sm sm:text-base">
                                     <option value="info">Information</option>
                                     <option value="warning">Warning</option>
                                     <option value="success">Success</option>
@@ -127,45 +127,45 @@
 
                         <div>
                             <label class="block text-sm font-semibold text-slate-300 mb-2">Subject/Title</label>
-                            <input id="messageTitle" type="text" placeholder="Enter message title..." class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20">
+                            <input id="messageTitle" type="text" placeholder="Enter message title..." class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 text-sm sm:text-base">
                         </div>
 
                         <div>
                             <label class="block text-sm font-semibold text-slate-300 mb-2">Message Content</label>
-                            <textarea id="messageContent" rows="6" placeholder="Enter your message..." class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 resize-none"></textarea>
+                            <textarea id="messageContent" rows="6" placeholder="Enter your message..." class="w-full rounded-xl border border-slate-700 bg-slate-950/80 px-4 py-3 text-slate-100 outline-none ring-1 ring-transparent transition focus:border-cyan-400 focus:ring-cyan-400/20 resize-none text-sm sm:text-base"></textarea>
                         </div>
 
                         <div class="flex gap-3">
-                            <button type="submit" class="flex-1 rounded-xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition">
+                            <button type="submit" class="flex-1 rounded-xl bg-cyan-600 px-4 py-3 text-white font-semibold hover:bg-cyan-700 transition text-sm sm:text-base">
                                 Send Message
                             </button>
-                            <button type="button" id="clearBtn" class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition">
+                            <button type="button" id="clearBtn" class="rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition text-sm sm:text-base">
                                 Clear
                             </button>
                         </div>
                     </form>
                 </div>
 
-                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+                <div class="glass-panel rounded-[2rem] p-4 sm:p-6 shadow-2xl shadow-slate-950/30">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
                         <div>
                             <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Message History</p>
                             <h3 class="mt-2 text-xl font-semibold text-slate-100">Recent Messages Sent</h3>
                         </div>
-                        <button id="refreshHistory" class="rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition">
+                        <button id="refreshHistory" class="w-full sm:w-auto rounded-2xl border border-slate-700 bg-slate-900/80 px-4 py-3 text-slate-100 shadow-lg shadow-slate-950/20 hover:bg-slate-800 transition text-sm sm:text-base">
                             Refresh
                         </button>
                     </div>
 
                     <div id="messageHistory" class="space-y-4">
-                        <div class="message-card p-6 rounded-[1.75rem]">
+                        <div class="message-card p-4 sm:p-6 rounded-[1.75rem]">
                             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                 <div class="space-y-2">
                                     <p class="text-xs uppercase tracking-[0.3em] text-cyan-300/80">Loading messages...</p>
-                                    <h3 class="text-xl font-semibold text-slate-100">Message history will appear here</h3>
+                                    <h3 class="text-lg sm:text-xl font-semibold text-slate-100">Message history will appear here</h3>
                                     <p class="text-sm text-slate-400">Recent admin messages and broadcasts</p>
                                 </div>
-                                <span class="status-pill bg-slate-700 text-slate-300">Loading</span>
+                                <span class="status-pill bg-slate-700 text-slate-300 self-start sm:self-auto">Loading</span>
                             </div>
                         </div>
                     </div>
@@ -173,38 +173,38 @@
             </div>
 
             <div class="space-y-6">
-                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                <div class="glass-panel rounded-[2rem] p-4 sm:p-6 shadow-2xl shadow-slate-950/30">
                     <h3 class="text-xl font-semibold text-slate-100 mb-4">Quick Stats</h3>
                     <div class="space-y-4">
-                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75">
-                            <span class="text-slate-300">Total Users</span>
-                            <span id="totalUsers" class="text-cyan-300 font-bold">0</span>
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75 gap-2">
+                            <span class="text-slate-300 text-sm sm:text-base">Total Users</span>
+                            <span id="totalUsers" class="text-cyan-300 font-bold text-sm sm:text-base break-all">0</span>
                         </div>
-                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75">
-                            <span class="text-slate-300">Messages Sent Today</span>
-                            <span id="messagesToday" class="text-emerald-300 font-bold">0</span>
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75 gap-2">
+                            <span class="text-slate-300 text-sm sm:text-base">Messages Sent Today</span>
+                            <span id="messagesToday" class="text-emerald-300 font-bold text-sm sm:text-base break-all">0</span>
                         </div>
-                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75">
-                            <span class="text-slate-300">Active Recipients</span>
-                            <span id="activeRecipients" class="text-amber-300 font-bold">0</span>
+                        <div class="flex justify-between items-center p-4 rounded-xl bg-slate-950/75 gap-2">
+                            <span class="text-slate-300 text-sm sm:text-base">Active Recipients</span>
+                            <span id="activeRecipients" class="text-amber-300 font-bold text-sm sm:text-base break-all">0</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
+                <div class="glass-panel rounded-[2rem] p-4 sm:p-6 shadow-2xl shadow-slate-950/30">
                     <h3 class="text-xl font-semibold text-slate-100 mb-4">Message Templates</h3>
                     <div class="space-y-3">
                         <button onclick="loadTemplate('welcome')" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition">
-                            <div class="font-semibold">Welcome Message</div>
-                            <div class="text-sm text-slate-400">Welcome new users to the platform</div>
+                            <div class="font-semibold text-sm sm:text-base">Welcome Message</div>
+                            <div class="text-xs sm:text-sm text-slate-400 mt-1">Welcome new users to the platform</div>
                         </button>
                         <button onclick="loadTemplate('maintenance')" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition">
-                            <div class="font-semibold">Maintenance Notice</div>
-                            <div class="text-sm text-slate-400">Inform users about system maintenance</div>
+                            <div class="font-semibold text-sm sm:text-base">Maintenance Notice</div>
+                            <div class="text-xs sm:text-sm text-slate-400 mt-1">Inform users about system maintenance</div>
                         </button>
                         <button onclick="loadTemplate('security')" class="w-full text-left p-3 rounded-xl border border-slate-700 bg-slate-900/80 text-slate-100 hover:bg-slate-800 transition">
-                            <div class="font-semibold">Security Alert</div>
-                            <div class="text-sm text-slate-400">Important security notifications</div>
+                            <div class="font-semibold text-sm sm:text-base">Security Alert</div>
+                            <div class="text-xs sm:text-sm text-slate-400 mt-1">Important security notifications</div>
                         </button>
                     </div>
                 </div>
@@ -213,7 +213,7 @@
 
         <!-- Broadcast Modal -->
         <div id="broadcastModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-900/80 p-4">
-            <div class="max-w-md w-full bg-slate-800 rounded-[2rem] border border-slate-700 shadow-2xl overflow-hidden">
+            <div class="max-w-md w-full bg-slate-800 rounded-[2rem] border border-slate-700 shadow-2xl overflow-hidden mx-auto">
                 <div class="bg-slate-900 px-6 py-5 border-b border-slate-700">
                     <h2 class="text-lg font-bold text-white">Broadcast Message</h2>
                     <p class="text-sm text-slate-400 mt-1">Send to all registered users</p>
@@ -223,8 +223,8 @@
                         <p class="text-amber-300 text-sm">⚠️ This will send the message to ALL users. Use carefully.</p>
                     </div>
                     <div class="flex gap-3">
-                        <button id="confirmBroadcast" class="flex-1 rounded-xl bg-amber-600 px-4 py-3 text-white font-semibold hover:bg-amber-700 transition">Send Broadcast</button>
-                        <button id="cancelBroadcast" class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition">Cancel</button>
+                        <button id="confirmBroadcast" class="flex-1 rounded-xl bg-amber-600 px-4 py-3 text-white font-semibold hover:bg-amber-700 transition text-sm sm:text-base">Send Broadcast</button>
+                        <button id="cancelBroadcast" class="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 font-semibold hover:bg-slate-800 transition text-sm sm:text-base">Cancel</button>
                     </div>
                 </div>
             </div>
@@ -378,14 +378,14 @@
         function renderMessageHistory() {
             if (!messageHistory || messageHistory.length === 0) {
                 messageHistoryEl.innerHTML = `
-                    <div class="message-card p-6 rounded-[1.75rem]">
+                    <div class="message-card p-4 sm:p-6 rounded-[1.75rem]">
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                             <div class="space-y-2">
                                 <p class="text-xs uppercase tracking-[0.3em] text-slate-400">No messages sent yet</p>
                                 <h3 class="text-xl font-semibold text-slate-100">Message history is empty</h3>
                                 <p class="text-sm text-slate-400">Send your first message to see it here</p>
                             </div>
-                            <span class="status-pill bg-slate-700 text-slate-300">Empty</span>
+                            <span class="status-pill bg-slate-700 text-slate-300 self-start sm:self-auto">Empty</span>
                         </div>
                     </div>
                 `;
@@ -393,16 +393,16 @@
             }
 
             messageHistoryEl.innerHTML = messageHistory.slice(0, 10).map(msg => `
-                <div class="message-card p-6 rounded-[1.75rem]">
+                <div class="message-card p-4 sm:p-6 rounded-[1.75rem]">
                     <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div class="space-y-2">
                             <p class="text-xs uppercase tracking-[0.3em] text-cyan-300/80">${msg.type || 'Message'}</p>
-                            <h3 class="text-xl font-semibold text-slate-100">${msg.title}</h3>
-                            <p class="text-sm text-slate-400">${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}</p>
+                            <h3 class="text-lg sm:text-xl font-semibold text-slate-100">${msg.title}</h3>
+                            <p class="text-sm text-slate-400 break-words">${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}</p>
                             <p class="text-xs text-slate-500">Sent: ${msg.timestamp}</p>
                         </div>
-                        <div class="text-right space-y-2">
-                            <span class="status-pill bg-emerald-600/20 text-emerald-300">${msg.recipientCount || 1} recipients</span>
+                        <div class="text-left sm:text-right space-y-2 self-start sm:self-auto">
+                            <span class="status-pill inline-block bg-emerald-600/20 text-emerald-300 whitespace-nowrap">${msg.recipientCount || 1} recipients</span>
                         </div>
                     </div>
                 </div>
@@ -505,7 +505,6 @@
 
         onAuthStateChanged(auth, (user) => {
             if (!user) {
-                
                 return;
             }
             loadUsers();
@@ -515,3 +514,4 @@
     <script type="module" src="../components/layout/adminSidebar.js"></script>
 </body>
 </html>
+       
