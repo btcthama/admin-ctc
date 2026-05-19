@@ -26,42 +26,42 @@
     </style>
 </head>
 <body>
-    <div class="min-h-screen max-w-6xl mx-auto p-6 lg:p-8">
+    <div class="min-h-screen max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
                 <p class="text-sm uppercase tracking-[0.35em] text-cyan-300/70">CTC Capital Admin</p>
-                <h1 class="text-4xl font-semibold tracking-tight text-white">Notifications Control</h1>
-                <p class="mt-2 text-slate-400 max-w-2xl">Send targeted alerts, broadcast urgent market updates, and keep users in sync with your platform.</p>
+                <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-white">Notifications Control</h1>
+                <p class="mt-2 text-slate-400 max-w-2xl text-sm sm:text-base">Send targeted alerts, broadcast urgent market updates, and keep users in sync with your platform.</p>
             </div>
-            <div class="rounded-3xl border border-cyan-500/20 bg-slate-900/80 p-4 text-right">
-                <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Signed-in status</p>
-                <p id="adminStatus" class="mt-2 text-lg font-semibold text-white">Checking auth�</p>
+            <div class="rounded-3xl border border-cyan-500/20 bg-slate-900/80 p-4 text-left lg:text-right">
+                <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Panel Access Status</p>
+                <p id="adminStatus" class="mt-2 text-lg font-semibold text-emerald-400">Direct Mode Active</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
-            <section class="glass rounded-[32px] border border-cyan-500/10 p-6 shadow-2xl shadow-cyan-500/5">
+            <section class="glass rounded-[32px] border border-cyan-500/10 p-5 sm:p-6 shadow-2xl shadow-cyan-500/5">
                 <div class="space-y-6">
                     <div>
                         <label class="block text-sm font-semibold uppercase tracking-[0.35em] text-slate-400">Select user</label>
-                        <select id="userSelect" class="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20"></select>
+                        <select id="userSelect" class="mt-3 w-full rounded-3xl border border-slate-700 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-sm sm:text-base"></select>
                     </div>
                     <div>
                         <label class="block text-sm font-semibold uppercase tracking-[0.35em] text-slate-400">Or enter user ID</label>
-                        <input id="userIdInput" class="mt-3 w-full rounded-3xl px-4 py-3 text-white input-shadow outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" placeholder="Paste target UID here" />
+                        <input id="userIdInput" class="mt-3 w-full rounded-3xl px-4 py-3 text-white input-shadow outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-sm sm:text-base" placeholder="Paste target UID here" />
                     </div>
                     <div>
                         <label class="block text-sm font-semibold uppercase tracking-[0.35em] text-slate-400">Message</label>
-                        <textarea id="messageInput" rows="5" class="mt-3 w-full rounded-3xl px-4 py-3 text-white input-shadow outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20" placeholder="Type your market alert or account notification"></textarea>
+                        <textarea id="messageInput" rows="5" class="mt-3 w-full rounded-3xl px-4 py-3 text-white input-shadow outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 text-sm sm:text-base" placeholder="Type your market alert or account notification"></textarea>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button id="sendNotification" class="btn-primary rounded-3xl px-6 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-white shadow-lg shadow-cyan-500/10">Send Notification</button>
-                        <button id="broadcastAll" class="btn-gold rounded-3xl px-6 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-slate-950 shadow-lg shadow-amber-500/15">Broadcast to All</button>
+                        <button id="sendNotification" class="btn-primary rounded-3xl px-6 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-white shadow-lg shadow-cyan-500/10 w-full">Send Notification</button>
+                        <button id="broadcastAll" class="btn-gold rounded-3xl px-6 py-4 text-sm font-semibold uppercase tracking-[0.15em] text-slate-950 shadow-lg shadow-amber-500/15 w-full">Broadcast to All</button>
                     </div>
                 </div>
             </section>
 
-            <aside class="glass rounded-[32px] border border-slate-700/30 p-6">
+            <aside class="glass rounded-[32px] border border-slate-700/30 p-5 sm:p-6">
                 <div class="space-y-6">
                     <div>
                         <h2 class="text-xl font-semibold text-white">Send History</h2>
@@ -77,7 +77,6 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, doc, getDocs, addDoc, query, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -91,10 +90,8 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
         const db = getFirestore(app);
 
-        const adminStatus = document.getElementById('adminStatus');
         const userSelect = document.getElementById('userSelect');
         const userIdInput = document.getElementById('userIdInput');
         const messageInput = document.getElementById('messageInput');
@@ -102,16 +99,7 @@
         const broadcastAll = document.getElementById('broadcastAll');
         const eventLog = document.getElementById('eventLog');
 
-        let currentUser = null;
         let usersCache = [];
-
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            adminStatus.textContent = user ? `${user.displayName || user.email || user.uid}` : 'Not signed in';
-            if (!user) {
-                logEvent('Please sign in with an admin account to send notifications.');
-            }
-        });
 
         async function loadUserOptions() {
             try {
@@ -122,7 +110,7 @@
                     return;
                 }
                 userSelect.innerHTML = '<option value="">Choose a user</option>' + usersCache.map(user => `\n<option value="${user.uid}">${user.data.email || user.uid}</option>`).join('');
-                logEvent(`${usersCache.length} users loaded.`);
+                logEvent(`${usersCache.length} users loaded dynamically.`);
             } catch (error) {
                 logEvent(`Failed to load users: ${error.message}`);
             }
@@ -131,7 +119,7 @@
         function logEvent(message) {
             const item = document.createElement('div');
             item.className = 'rounded-3xl bg-slate-950/70 border border-slate-700/40 p-4';
-            item.innerHTML = `<p>${message}</p><p class="mt-2 text-xs text-slate-500">${new Date().toLocaleString()}</p>`;
+            item.innerHTML = `<p class="break-all">${message}</p><p class="mt-2 text-xs text-slate-500">${new Date().toLocaleString()}</p>`;
             eventLog.prepend(item);
             while (eventLog.children.length > 6) eventLog.removeChild(eventLog.lastChild);
         }
@@ -148,13 +136,9 @@
         }
 
         sendNotification.addEventListener('click', async () => {
-            if (!currentUser) {
-                logEvent('Sign in first to send notifications.');
-                return;
-            }
-
             const targetUid = (userIdInput.value || userSelect.value || '').trim();
             const message = messageInput.value.trim();
+            
             if (!targetUid) {
                 logEvent('Please select or enter a User ID.');
                 return;
@@ -166,7 +150,7 @@
 
             try {
                 await sendToUser(targetUid, 'Admin Message', message);
-                logEvent(`Notification sent to ${targetUid}.`);
+                logEvent(`Notification successfully sent to ${targetUid}.`);
                 messageInput.value = '';
             } catch (error) {
                 logEvent(`Failed to send notification: ${error.message}`);
@@ -174,19 +158,16 @@
         });
 
         broadcastAll.addEventListener('click', async () => {
-            if (!currentUser) {
-                logEvent('Sign in first to broadcast notifications.');
-                return;
-            }
             if (usersCache.length === 0) {
                 logEvent('No users available to broadcast.');
                 return;
             }
 
-            const broadcastMessage = 'Market Alert: BTC is surging! Stay ready for price action.';
+            const broadcastMessage = messageInput.value.trim() || 'Market Alert: BTC is surging! Stay ready for price action.';
             try {
                 await Promise.all(usersCache.map((user) => sendToUser(user.uid, 'Market Alert', broadcastMessage)));
-                logEvent(`Broadcast sent to ${usersCache.length} users.`);
+                logEvent(`Broadcast successfully sent to ${usersCache.length} users.`);
+                messageInput.value = '';
             } catch (error) {
                 logEvent(`Broadcast failed: ${error.message}`);
             }
