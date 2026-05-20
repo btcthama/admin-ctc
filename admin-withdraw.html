@@ -14,9 +14,7 @@
             max-width: 100%;
             box-sizing: border-box;
         }
-
-        html,
-        body {
+        html, body {
             overflow-x: hidden;
             width: 100vw;
             min-width: 0;
@@ -27,14 +25,6 @@
             color: #E2E8F0;
             -webkit-tap-highlight-color: rgba(0,0,0,0);
             touch-action: manipulation;
-        }
-        @media (max-width: 640px) {
-            h1 { font-size: 1.5rem; }
-            h2 { font-size: 1.25rem; }
-            h3 { font-size: 1.1rem; }
-            .glass-panel, .max-w-md, .max-w-6xl {
-                padding: 1rem !important;
-            }
         }
         .glass-panel {
             background: rgba(15, 23, 42, 0.82);
@@ -55,10 +45,33 @@
             font-size: 0.78rem;
             letter-spacing: 0.02em;
         }
+        @media (max-width: 1024px) {
+            .ml-64 { margin-left: 0 !important; }
+        }
+        @media (max-width: 768px) {
+            .px-6, .py-8, .p-6, .p-8, .pb-10, .pt-6, .max-w-7xl, .max-w-md, .max-w-6xl {
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+                max-width: 100vw !important;
+            }
+            .rounded-3xl, .rounded-2xl, .rounded-xl {
+                border-radius: 1rem !important;
+            }
+            h1 { font-size: 1.5rem !important; }
+            h2 { font-size: 1.25rem !important; }
+            h3 { font-size: 1.1rem !important; }
+        }
+        @media (max-width: 640px) {
+            h1 { font-size: 1.2rem !important; }
+            h2 { font-size: 1rem !important; }
+            h3 { font-size: 0.95rem !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen pb-10">
-    <div id="mainContent" class="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 overflow-x-hidden max-w-full">
+    <div id="mainContent" class="max-w-[1600px] mx-auto px-2 sm:px-4 md:px-6 lg:px-8 pt-4 md:pt-6 overflow-x-hidden max-w-full">
         <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
             <div>
                 <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Admin Control</p>
@@ -71,7 +84,7 @@
             </a>
         </header>
 
-        <section class="grid gap-6 xl:grid-cols-[1.4fr_0.9fr]">
+        <section class="grid gap-6 grid-cols-1 xl:grid-cols-[1.4fr_0.9fr]">
             <div class="space-y-6">
                 <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
                     <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -97,7 +110,7 @@
                 </div>
 
                 <div class="glass-panel rounded-[2rem] p-6 shadow-2xl shadow-slate-950/30">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+                    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
                         <div>
                             <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Search</p>
                             <h3 class="mt-2 text-xl font-semibold text-slate-100">All withdrawals</h3>
@@ -107,18 +120,24 @@
                         </div>
                     </div>
 
+                    <div class="flex items-center mb-4">
+                        <label class="flex items-center gap-2 text-slate-300 text-sm font-medium select-none">
+                            <input type="checkbox" id="showOlderToggle" class="form-checkbox rounded border-slate-600 text-cyan-500 focus:ring-cyan-400/30" />
+                            Show older transactions
+                        </label>
+                    </div>
                     <div class="overflow-x-auto rounded-[2rem] border border-slate-700 bg-slate-950/80">
                         <table class="min-w-full border-collapse text-left">
                             <thead class="table-header text-slate-400">
                                 <tr>
                                     <th class="px-5 py-4 text-sm font-semibold">User Email</th>
-                            <th class="px-5 py-4 text-sm font-semibold">Asset</th>
-                            <th class="px-5 py-4 text-sm font-semibold">Status</th>
-                            <th class="px-5 py-4 text-sm font-semibold">Amount</th>
-                            <th class="px-5 py-4 text-sm font-semibold">Account Details</th>
-                            <th class="px-5 py-4 text-sm font-semibold">KYC Match</th>
-                            <th class="px-5 py-4 text-sm font-semibold">Admin Note</th>
-                            <th class="px-5 py-4 text-sm font-semibold">Update User</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">Asset</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">Status</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">Amount</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">Account Details</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">KYC Match</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">Admin Note</th>
+                                    <th class="px-5 py-4 text-sm font-semibold">Update User</th>
                                 </tr>
                             </thead>
                             <tbody id="withdrawalTableBody" class="divide-y divide-slate-800"></tbody>
@@ -348,9 +367,25 @@
             const query = searchEmail.value.trim().toLowerCase();
             withdrawalTableBody.innerHTML = '';
 
-            const visibleRequests = requests.filter(request => {
+            // Filter by search
+            let visibleRequests = requests.filter(request => {
                 return (request.userEmail || 'N/A').toLowerCase().includes(query);
             });
+
+            // Filter by date if toggle is off
+            const showOlderToggle = document.getElementById('showOlderToggle');
+            let showOlder = showOlderToggle && showOlderToggle.checked;
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            if (!showOlder) {
+                visibleRequests = visibleRequests.filter(request => {
+                    // Show only today's and future transactions (new)
+                    if (request.timestamp && typeof request.timestamp.toDate === 'function') {
+                        return request.timestamp.toDate() >= todayStart;
+                    }
+                    return false;
+                });
+            }
 
             if (!visibleRequests.length) {
                 withdrawalTableBody.innerHTML = `<tr><td colspan="8" class="px-5 py-6 text-center text-slate-400">No withdrawals match this query.</td></tr>`;
@@ -360,6 +395,13 @@
                 const row = document.createElement('tr');
                 row.className = 'table-row transition-all';
                 const noteId = `adminNote-${request.id}`;
+                // Add Accept/Reject buttons for pending requests
+                const actions = request.status === 'pending'
+                    ? `
+                        <button type="button" data-request-id="${request.id}" class="accept-btn inline-flex items-center rounded-2xl bg-cyan-600 px-3 py-2 mr-2 text-xs font-semibold text-white hover:bg-cyan-500 transition">Accept</button>
+                        <button type="button" data-request-id="${request.id}" class="reject-btn inline-flex items-center rounded-2xl bg-rose-600 px-3 py-2 text-xs font-semibold text-white hover:bg-rose-500 transition">Reject</button>
+                    `
+                    : `<span class="text-slate-400 text-xs">—</span>`;
                 row.innerHTML = `
                     <td class="px-5 py-4 align-top text-slate-100"><div class="max-w-[220px] truncate">${request.userEmail || 'Unknown'}</div></td>
                     <td class="px-5 py-4 align-top"><span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold ${request.method === 'btc' ? 'bg-amber-500/10 text-amber-300' : 'bg-cyan-500/10 text-cyan-300'}">${request.method === 'btc' ? 'BTC' : 'USD'}</span></td>
@@ -372,11 +414,14 @@
                     </td>
                     <td class="px-5 py-4 align-top">
                         <button type="button" data-request-id="${request.id}" class="update-user-btn inline-flex w-full items-center justify-center rounded-2xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-500">Update User</button>
+                        <div class="flex mt-2">${actions}</div>
                     </td>
                 `;
                 row.addEventListener('click', () => selectRequest(request.id));
                 withdrawalTableBody.appendChild(row);
             });
+
+            // Existing update user button logic
             document.querySelectorAll('.update-user-btn').forEach((button) => {
                 button.addEventListener('click', (event) => {
                     event.stopPropagation();
@@ -384,12 +429,33 @@
                     const noteField = document.getElementById(`adminNote-${requestId}`);
                     const request = requests.find(req => req.id === requestId);
                     const userUID = request?.uid || '';
-                    console.log('Sending message to UID:', userUID, 'for withdrawal:', requestId);
                     if (!request || !userUID) {
                         showToast('Unable to update user notification.');
                         return;
                     }
                     updateUserNotification(request.id, userUID, noteField.value.trim());
+                });
+            });
+
+            // Accept/Reject button logic
+            document.querySelectorAll('.accept-btn').forEach((button) => {
+                button.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    const requestId = button.dataset.requestId;
+                    const request = requests.find(req => req.id === requestId);
+                    if (!request) return;
+                    selectRequest(requestId);
+                    await approveWithdrawal();
+                });
+            });
+            document.querySelectorAll('.reject-btn').forEach((button) => {
+                button.addEventListener('click', async (event) => {
+                    event.stopPropagation();
+                    const requestId = button.dataset.requestId;
+                    const request = requests.find(req => req.id === requestId);
+                    if (!request) return;
+                    selectRequest(requestId);
+                    await declineWithdrawal();
                 });
             });
         };
@@ -651,6 +717,20 @@
         approveBtn.addEventListener('click', approveWithdrawal);
         declineBtn.addEventListener('click', declineWithdrawal);
         searchEmail.addEventListener('input', renderTable);
+        // Toggle for showing older transactions
+        document.addEventListener('DOMContentLoaded', () => {
+            const showOlderToggle = document.getElementById('showOlderToggle');
+            if (showOlderToggle) {
+                showOlderToggle.addEventListener('change', renderTable);
+            }
+        });
+        // If DOMContentLoaded already fired
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            const showOlderToggle = document.getElementById('showOlderToggle');
+            if (showOlderToggle) {
+                showOlderToggle.addEventListener('change', renderTable);
+            }
+        }
 
         loadWithdrawals();
 
@@ -710,3 +790,5 @@
     </script>
 </body>
 </html>
+
+
